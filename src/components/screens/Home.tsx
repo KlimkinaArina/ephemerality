@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
@@ -27,8 +27,11 @@ const LOAD_ERROR =
 
 export function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [minutes, setMinutes] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState<string | null>(
+    searchParams.get("minutes")
+  );
   const [query, setQuery] = useState("");
   const [films, setFilms] = useState<CatalogFilm[]>([]);
   const [loading, setLoading] = useState(true);

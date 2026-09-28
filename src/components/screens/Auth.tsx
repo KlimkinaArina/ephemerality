@@ -40,7 +40,7 @@ export function Auth() {
     <section className="flex justify-center px-4 py-10 sm:px-6 sm:py-16">
       <div className="relative w-full max-w-[996px] overflow-hidden rounded-[var(--ef-radius-modal)] border border-foreground bg-auth">
         <Link
-          href="/"
+          href="/app"
           className="absolute right-5 top-5 flex size-8 items-center justify-center"
           aria-label="Закрыть"
         >

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Geist_Mono, Manrope } from "next/font/google";
-import { CatalogShell } from "@/components/catalog-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import "./globals.css";
@@ -26,7 +25,7 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Эфемерность",
   description:
-    "Платформа короткометражного кино: выберите время и получите историю.",
+    "Выберите, сколько у вас есть времени — «Эфемерность» подберёт короткометражный фильм, который можно посмотреть прямо сейчас.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -37,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col">
         <AuthProvider>
-          <CatalogShell>{children}</CatalogShell>
+          {children}
           <Toaster />
         </AuthProvider>
       </body>

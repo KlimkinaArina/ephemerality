@@ -18,10 +18,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 
 const nav = [
-  { href: "/#about", label: "О фестивале" },
+  { href: "/app#about", label: "О фестивале" },
   { href: "/catalog", label: "Программа" },
   { href: "/search", label: "Приглашенные гости" },
-  { href: "/#footer", label: "Контакты" },
+  { href: "/app#footer", label: "Контакты" },
 ];
 
 const accountNav = [
@@ -48,7 +48,7 @@ export function CatalogHeader() {
   return (
     <header className="sticky top-0 z-20 bg-background">
       <div className="mx-auto flex h-16 w-full max-w-[var(--ef-content-width)] items-center justify-between gap-4 px-4 sm:h-[var(--ef-header-height)] sm:px-6">
-        <Link href="/" className="shrink-0">
+        <Link href="/app" className="shrink-0">
           <img
             src="/brand/logo.png"
             alt="Эфемерность"
