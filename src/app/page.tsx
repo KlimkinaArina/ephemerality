@@ -1,11 +1,5 @@
-import { FilmGrid } from "@/components/film-grid";
-import { HeroSearch } from "@/components/hero-search";
+import { Home } from "@/components/screens/Home";
 
-export default function Home() {
-  return (
-    <>
-      <HeroSearch />
-      <FilmGrid emptyLabel="Фильмы появятся после слоя данных" />
-    </>
-  );
+export default function Page() {
+  return <Home />;
 }

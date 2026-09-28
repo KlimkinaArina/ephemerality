@@ -1,0 +1,59 @@
+/* Figma «Эфемерность» — единственное место hex/размеров.
+   Файл: znroK6iUBhGdoWRxntVcsK, кадр «главная страница» (2:2). */
+
+:root {
+  /* Palette */
+  --ef-bg: #0d1917;
+  --ef-hero: #0a1514;
+  --ef-film: #051111;
+  --ef-film-panel: #061111;
+  --ef-auth: #0b1515;
+  --ef-gradient: #0b1413;
+  --ef-section: #0f1e1b;
+  --ef-sage: #b8c5a8;
+  --ef-sage-muted: rgb(184 197 168 / 0.7);
+  --ef-gradient-end: rgb(13 23 22 / 0);
+  --ef-on-sage: #0d1917;
+
+  /* Typography (Manrope) */
+  --ef-text-display: 64px;
+  --ef-text-cta: 32px;
+  --ef-text-section: 24px;
+  --ef-text-body: 20px;
+  --ef-text-meta: 16px;
+  --ef-tracking-display: 23.04px;
+  --ef-tracking-film: 17.28px;
+  --ef-tracking-footer: 7.2px;
+  --ef-text-ticket: 36px;
+  --ef-text-caption: 14px;
+  --ef-tracking-ticket: 12.96px;
+  --ef-text-mark: 128px;
+  --ef-weight-extralight: 200;
+  --ef-weight-light: 300;
+  --ef-weight-regular: 400;
+  --ef-weight-medium: 500;
+
+  /* Radii / stroke / elevation */
+  --ef-radius-button: 14px;
+  --ef-radius-trailer: 21px;
+  --ef-radius-modal: 31px;
+  --ef-radius-none: 0px;
+  --ef-border-width: 0.5px;
+  --ef-shadow: none;
+
+  /* Layout */
+  --ef-header-height: 128px;
+  --ef-canvas: 1920px;
+  --ef-content-inset: 318px;
+  --ef-content-width: 1286px;
+
+  /* Spacing scale (8px grid, observed in file) */
+  --ef-space-1: 8px;
+  --ef-space-2: 16px;
+  --ef-space-3: 24px;
+  --ef-space-4: 32px;
+  --ef-space-5: 48px;
+  --ef-space-6: 56px;
+  --ef-space-7: 64px;
+  --ef-space-8: 128px;
+}

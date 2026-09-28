@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -39,6 +40,14 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-hero: var(--ef-hero);
+  --color-film: var(--ef-film);
+  --color-film-panel: var(--ef-film-panel);
+  --color-auth: var(--ef-auth);
+  --color-section: var(--ef-section);
+  --color-sage: var(--ef-sage);
+  --color-sage-muted: var(--ef-sage-muted);
+  --font-serif: var(--font-quote);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -46,43 +55,43 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-button: var(--ef-radius-button);
 }
 
-/* §12: тёмный нейтральный фон как рабочая гипотеза; акцент не зафиксирован — тёплое золото. */
 :root,
 .dark {
-  --background: oklch(0.16 0.012 75);
-  --foreground: oklch(0.96 0.012 85);
-  --card: oklch(0.2 0.012 75);
-  --card-foreground: oklch(0.96 0.012 85);
-  --popover: oklch(0.2 0.012 75);
-  --popover-foreground: oklch(0.96 0.012 85);
-  --primary: oklch(0.78 0.07 78);
-  --primary-foreground: oklch(0.18 0.02 75);
-  --secondary: oklch(0.24 0.012 75);
-  --secondary-foreground: oklch(0.96 0.012 85);
-  --muted: oklch(0.24 0.01 75);
-  --muted-foreground: oklch(0.72 0.02 80);
-  --accent: oklch(0.78 0.07 78);
-  --accent-foreground: oklch(0.18 0.02 75);
-  --destructive: oklch(0.65 0.18 25);
-  --border: oklch(0.96 0.012 85 / 12%);
-  --input: oklch(0.96 0.012 85 / 14%);
-  --ring: oklch(0.78 0.07 78);
-  --chart-1: oklch(0.78 0.07 78);
-  --chart-2: oklch(0.72 0.02 80);
-  --chart-3: oklch(0.5 0.02 75);
-  --chart-4: oklch(0.37 0.01 75);
-  --chart-5: oklch(0.26 0.01 75);
-  --radius: 0.4rem;
-  --sidebar: oklch(0.2 0.012 75);
-  --sidebar-foreground: oklch(0.96 0.012 85);
-  --sidebar-primary: oklch(0.78 0.07 78);
-  --sidebar-primary-foreground: oklch(0.18 0.02 75);
-  --sidebar-accent: oklch(0.24 0.012 75);
-  --sidebar-accent-foreground: oklch(0.96 0.012 85);
-  --sidebar-border: oklch(0.96 0.012 85 / 12%);
-  --sidebar-ring: oklch(0.78 0.07 78);
+  --background: var(--ef-bg);
+  --foreground: var(--ef-sage);
+  --card: var(--ef-section);
+  --card-foreground: var(--ef-sage);
+  --popover: var(--ef-section);
+  --popover-foreground: var(--ef-sage);
+  --primary: var(--ef-sage);
+  --primary-foreground: var(--ef-on-sage);
+  --secondary: var(--ef-hero);
+  --secondary-foreground: var(--ef-sage);
+  --muted: var(--ef-hero);
+  --muted-foreground: var(--ef-sage-muted);
+  --accent: var(--ef-section);
+  --accent-foreground: var(--ef-sage);
+  --destructive: var(--ef-sage);
+  --border: var(--ef-sage);
+  --input: var(--ef-sage);
+  --ring: var(--ef-sage);
+  --chart-1: var(--ef-sage);
+  --chart-2: var(--ef-sage-muted);
+  --chart-3: var(--ef-section);
+  --chart-4: var(--ef-hero);
+  --chart-5: var(--ef-bg);
+  --radius: var(--ef-radius-button);
+  --sidebar: var(--ef-bg);
+  --sidebar-foreground: var(--ef-sage);
+  --sidebar-primary: var(--ef-sage);
+  --sidebar-primary-foreground: var(--ef-on-sage);
+  --sidebar-accent: var(--ef-hero);
+  --sidebar-accent-foreground: var(--ef-sage);
+  --sidebar-border: var(--ef-sage);
+  --sidebar-ring: var(--ef-sage);
 }
 
 @layer base {
@@ -94,5 +103,6 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-weight: var(--ef-weight-regular);
   }
 }
