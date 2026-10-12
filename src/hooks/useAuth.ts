@@ -37,29 +37,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      const nextUser = data.session?.user ?? null;
-      if (nextUser) await syncProfile(nextUser);
-      if (cancelled) return;
-      setUser(nextUser);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        const nextUser = data.session?.user ?? null;
+        if (cancelled) return;
+        setUser(nextUser);
+        setLoading(false);
+        if (nextUser) void syncProfile(nextUser);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (cancelled) return;
+        setUser(null);
+        setLoading(false);
+      });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextUser = session?.user ?? null;
-      if (nextUser) {
-        syncProfile(nextUser).then(() => {
-          if (!cancelled) {
-            setUser(nextUser);
-            setLoading(false);
-          }
-        });
-        return;
-      }
-      setUser(null);
+      if (cancelled) return;
+      setUser(nextUser);
       setLoading(false);
+      if (nextUser) void syncProfile(nextUser);
     });
 
     return () => {

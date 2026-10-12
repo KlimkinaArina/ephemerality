@@ -47,14 +47,21 @@ export function Signup() {
   }, [loading, user, next, router]);
 
   async function onSubmit(values: Values) {
-    const response = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: values.email,
-        password: values.password,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Не удалось связаться с сервером");
+      return;
+    }
     const payload = (await response.json().catch(() => ({}))) as Record<
       string,
       unknown
@@ -66,7 +73,7 @@ export function Signup() {
 
     if (!response.ok) {
       console.error(payload);
-      toast.error(authApiMessage(payload));
+      toast.error(authApiMessage(payload, "Ошибка"));
       return;
     }
 

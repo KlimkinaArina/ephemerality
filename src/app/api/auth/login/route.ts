@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSupabaseEnv } from "@/lib/supabase-env";
+import { authRouteError, createSupabaseAuthClient } from "@/lib/supabase-server";
 
 export async function POST(request: Request) {
-  const { url, anonKey } = getSupabaseEnv();
-  if (!url || !anonKey) {
+  const supabase = createSupabaseAuthClient();
+  if (!supabase) {
     return NextResponse.json(
       { message: "Не заданы NEXT_PUBLIC_SUPABASE_URL или ANON_KEY" },
       { status: 500 }
@@ -23,16 +23,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Укажите email и пароль" }, { status: 400 });
   }
 
-  const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  return NextResponse.json(data, { status: res.status });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error || !data.session) {
+      const message = authRouteError(error, "Неверный email или пароль");
+      const unavailable = message.startsWith("Supabase сейчас недоступен");
+      return NextResponse.json(
+        { message },
+        { status: unavailable ? 503 : 401 }
+      );
+    }
+    return NextResponse.json({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      session: data.session,
+    });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: authRouteError(error) }, { status: 503 });
+  }
 }

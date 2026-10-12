@@ -40,14 +40,21 @@ export function Login() {
   }, [loading, user, next, router]);
 
   async function onSubmit(values: Values) {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: values.email,
-        password: values.password,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Не удалось связаться с сервером");
+      return;
+    }
     const payload = (await response.json().catch(() => ({}))) as Record<
       string,
       unknown
@@ -65,7 +72,7 @@ export function Login() {
 
     const signedIn = await applyAuthSession(payload);
     if (!signedIn) {
-      toast.error("Ошибка");
+      toast.error("Не удалось сохранить сессию. Проверьте ключ Supabase и обновите страницу.");
       return;
     }
     toast.success("Сохранено");

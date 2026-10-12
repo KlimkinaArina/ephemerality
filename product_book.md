@@ -231,9 +231,11 @@
 
 ## 7. ПЛАТФОРМЫ ПРОДУКТА \[Core\]
 
+### 7.1 Чек-лист платформ
+
 | Платформа        | Статус | Роль                    | Когда нужна                                    |
 |:-----------------|:-------|:------------------------|:-----------------------------------------------|
-| Web              | ✅     | Companion               | Landing, SEO, каталог, фильм, share/deep links |
+| Web              | ✅     | **Primary**             | Все три роли: Visitor, Director, Moderator     |
 | iOS + Android    | ✅     | **Primary**             | Главный сценарий, push, регулярное потребление |
 | Telegram-бот     | ◐      | Acquisition + Companion | Discovery, retention, sharing                  |
 | WhatsApp-бот     | ☐      | Next iteration          | После проверки спроса                          |
@@ -273,6 +275,22 @@
 
 **Primary:** Mobile. **Companion:** Web. Telegram/Email — поверх базы; WhatsApp — позже.
 
+### 7.5 Три роли продукта
+
+Web — primary-поверхность для Visitor, Director и Moderator. Посетитель не добавляет фильмы: смотрит программу и покупает билеты. Режиссёр подаёт заявку. Модератор разбирает очередь и публикует программу.
+
+**Visitor — JTBD:** когда я выбираю, идти ли на фестиваль, я хочу сразу увидеть где / когда / что показывают, расписание, зал и цену, чтобы купить билет на подходящий сеанс, а не искать это вне сайта.
+
+**Director — JTBD:** когда у меня есть короткометражка, я хочу подать заявку и видеть её статус (и фидбек модератора), чтобы не писать в мессенджеры и не терять заявку.
+
+**Moderator — JTBD:** когда очередь заявок растёт, я хочу отфильтровать её, принять решение по каждой и собрать расписание по залам, чтобы опубликовать программу для посетителей.
+
+| Роль       | Auth                         | Доступ                                                                 |
+|:-----------|:-----------------------------|:-----------------------------------------------------------------------|
+| Visitor    | Гость (чтение) / аккаунт для билета | Публичные `/`, `/program`, `/film/:id`, `/session/:id`, `/venues`; бронь места |
+| Director   | Аккаунт, `role = director`   | `/director`, `/director/apply`, `/director/my`; CRUD только своих `films` |
+| Moderator  | Аккаунт, `role = moderator`  | `/moderator/*`; очередь, решение, расписание, аналитика; полный доступ |
+
 ------------------------------------------------------------------------
 
 ## 8. USER STORIES \[Core\]
@@ -288,43 +306,61 @@
 | US-7 | Как зритель, я хочу поделиться фильмом ссылкой.                                                                                         | Mobile + Web → social     | Should    |
 | US-8 | Как пользователь, я хочу получать уведомления о новых фильмах и коллекциях.                                                             | Mobile + Telegram + Email | Should    |
 | US-9 | Как пользователь, я хочу начать Web и продолжить Mobile с сохранённого прогресса.                                                       | Web → Mobile              | Should    |
+| US-10 | Как посетитель, я хочу видеть расписание фестиваля (где, когда, что, зал, цена), чтобы решить, на какой сеанс идти.                    | Web                       | **Must**  |
+| US-11 | Как посетитель, я хочу фильтровать программу по дню, чтобы смотреть только доступные мне даты.                                          | Web                       | **Must**  |
+| US-12 | Как посетитель, я хочу выбрать место в зале и оформить бронь/билет на сеанс.                                                            | Web                       | **Must**  |
+| US-13 | Как режиссёр, я хочу подать заявку со своим фильмом, чтобы попасть в рассмотрение программы.                                            | Web                       | **Must**  |
+| US-14 | Как режиссёр, я хочу видеть статус заявки (черновик / на рассмотрении / принята / отклонена / waitlist).                                | Web                       | **Must**  |
+| US-15 | Как режиссёр, я хочу получить фидбек модератора по заявке, чтобы понять решение и что исправить.                                        | Web                       | **Must**  |
+| US-16 | Как модератор, я хочу очередь заявок с фильтрами (статус, дата, жанр), чтобы разбирать входящие по приоритету.                          | Web                       | **Must**  |
+| US-17 | Как модератор, я хочу принять / отклонить / поставить в waitlist заявку и оставить заметку режиссёру.                                   | Web                       | **Must**  |
+| US-18 | Как модератор, я хочу собрать расписание (сеанс + зал + время + цена) и опубликовать программу для посетителей.                         | Web                       | **Must**  |
 
 ------------------------------------------------------------------------
 
 ## 9. ЭКРАНЫ И НАВИГАЦИЯ \[Core\]
 
-### Mobile (iOS + Android)
+Посетитель на вебе не создаёт фильмы. Заявки — только Director; публикация программы — только Moderator.
 
-| \#  | Экран                | Маршрут           | Основное действие        |
-|:----|:---------------------|:------------------|:-------------------------|
-| 1   | Home / выбор времени | `/`               | Выбрать 5/10/15/30 мин   |
-| 2   | Discover             | `/discover`       | Выбрать mood/topic       |
-| 3   | Recommendation       | `/recommendation` | Смотреть фильм           |
-| 4   | Film                 | `/film/:id`       | Смотреть/save/rate/share |
-| 5   | Player               | `/watch/:id`      | Смотреть/продолжить      |
-| 6   | Catalog              | `/catalog`        | Искать/фильтровать       |
-| 7   | Favorites            | `/favorites`      | Открыть сохранённое      |
-| 8   | History              | `/history`        | Продолжить просмотр      |
-| 9   | Author               | `/author/:id`     | Follow/open film         |
-| 10  | Profile              | `/profile`        | Управлять профилем       |
-| 11  | Auth                 | `/auth`           | Войти                    |
-| 12  | Premium              | `/premium`        | Купить/подписаться       |
+### Публичные (Visitor)
 
-### Web
+| \#  | Экран     | URL             | Основное действие                                      |
+|:----|:----------|:----------------|:-------------------------------------------------------|
+| 1   | Landing   | `/`             | Где / когда / что: город, даты, залы, вход в программу |
+| 2   | Program   | `/program`      | Расписание, фильтр по дню, сеанс, цена                 |
+| 3   | Film      | `/film/:id`     | Карточка принятого фильма в программе                  |
+| 4   | Session   | `/session/:id`  | Время, зал, цена, выбор места, билет                   |
+| 5   | Venues    | `/venues`       | Площадки/залы, адрес, вместимость                      |
 
-| \#  | Экран      | URL                 | Основное действие           |
-|:----|:-----------|:--------------------|:----------------------------|
-| 1   | Home       | `/`                 | Выбрать время/открыть фильм |
-| 2   | Catalog    | `/catalog`          | Поиск/фильтры               |
-| 3   | Film       | `/film/:id`         | Смотреть/share/save         |
-| 4   | Author     | `/author/:id`       | Follow/open film            |
-| 5   | Collection | `/collection/:slug` | Смотреть подборку           |
-| 6   | Search     | `/search`           | Поиск                       |
-| 7   | Favorites  | `/favorites`        | Открыть сохранённое         |
-| 8   | History    | `/history`          | Продолжить                  |
-| 9   | Profile    | `/profile`          | Настройки                   |
-| 10  | Auth       | `/auth`             | Войти                       |
-| 11  | Premium    | `/premium`          | Купить                      |
+### Режиссёрская зона (Director)
+
+| \#  | Экран        | URL                 | Основное действие                |
+|:----|:-------------|:--------------------|:---------------------------------|
+| 1   | Кабинет      | `/director`         | Сводка заявок и статусов         |
+| 2   | Заявка       | `/director/apply`   | Подать / дописать заявку         |
+| 3   | Мои заявки   | `/director/my`      | Статус и фидбек модератора       |
+
+### Модерация (Moderator)
+
+| \#  | Экран       | URL                     | Основное действие                 |
+|:----|:------------|:------------------------|:----------------------------------|
+| 1   | Кабинет     | `/moderator`            | Очередь и публикация              |
+| 2   | Очередь     | `/moderator/queue`      | Фильтры, разбор заявок            |
+| 3   | Заявка      | `/moderator/film/:id`   | Решение + review_notes            |
+| 4   | Расписание  | `/moderator/schedule`   | Сеансы, залы, цена, публикация    |
+| 5   | Аналитика   | `/moderator/analytics`  | Заявки, сеансы, билеты            |
+
+### Mobile (iOS + Android) — companion
+
+MVP мобилки: программа + мои билеты (QR). Не primary для заявок и модерации.
+
+| \#  | Экран        | Маршрут        | Основное действие          |
+|:----|:-------------|:---------------|:---------------------------|
+| 1   | Program      | `/program`     | Расписание, фильтр по дню  |
+| 2   | Film         | `/film/:id`    | Карточка фильма            |
+| 3   | Session      | `/session/:id` | Сеанс, зал, цена           |
+| 4   | My tickets   | `/tickets`     | Билеты и QR                |
+| 5   | Auth         | `/auth`        | Войти                      |
 
 ### Telegram
 
@@ -337,15 +373,15 @@
 ### Навигация
 
 ``` text
-Acquisition → Web /film/:id или Landing
+Acquisition → Web / (даты, город, залы)
                  ↓
-Mobile: Home → Time → Recommendation → Film → Player → Complete
-                 ↓                         ↓
-            Favorites/History        Save/Share
-                 ↑                         ↓
-Web: Home → Catalog → Film → Player ← deep link
-                 ↑
-Push / Telegram / Email → новый релевантный фильм
+Visitor: /program → фильтр по дню → /film/:id → /session/:id → билет
+                 ↓
+Director: /director/apply → /director/my (статус, фидбек)
+                 ↓
+Moderator: /moderator/queue → /moderator/film/:id → /moderator/schedule
+                 ↓
+Mobile companion: /program + /tickets (QR)
 ```
 
 ------------------------------------------------------------------------
@@ -358,9 +394,13 @@ Push / Telegram / Email → новый релевантный фильм
 
 | Таблица            | Назначение                                              |
 |:-------------------|:--------------------------------------------------------|
-| `users`            | Профиль, origin, preferences, role                      |
+| `users`            | Профиль, origin, preferences, `role`                    |
+| `festival_info`    | Название, даты, город, адрес, описание, hero_image      |
+| `halls`            | Площадка: name, address, capacity, seat_map_url         |
 | `authors`          | Профили авторов                                         |
-| `films`            | Фильмы, длительность, жанры, mood, видео                |
+| `films`            | Заявки режиссёра + карточка фильма в программе          |
+| `sessions`         | Сеанс: фильм, зал, время, цена, вместимость             |
+| `tickets`          | Билет: сеанс, зритель, место, статус                    |
 | `collections`      | Подборки/программы                                      |
 | `collection_films` | Связь подборок и фильмов                                |
 | `film_views`       | Просмотры и прогресс                                    |
@@ -376,11 +416,19 @@ Push / Telegram / Email → новый релевантный фильм
 
 ### Ключевые поля
 
-**users:** `id`, `email`, `telegram_id`, `oauth_provider`, `name`, `avatar_url`, `role`, `platform_origin`, `last_platform`, `preferences jsonb`, `onboarding_completed`, timestamps.
+**users:** `id`, `email`, `telegram_id`, `oauth_provider`, `name`, `avatar_url`, `role` enum (`visitor` / `director` / `moderator`, по умолчанию `visitor`), `platform_origin`, `last_platform`, `preferences jsonb`, `onboarding_completed`, timestamps.
+
+**festival_info:** `id`, `name`, `starts_on`, `ends_on`, `city`, `address`, `description`, `hero_image`, timestamps. Одна актуальная запись фестиваля для лендинга (где / когда).
+
+**halls:** `id`, `name`, `address`, `capacity`, `seat_map_url`, timestamps.
 
 **authors:** `id`, `user_id`, `name`, `slug`, `bio`, `avatar_url`, `website_url`, `is_verified`.
 
-**films:** `id`, `author_id`, `title`, `slug`, `description`, `duration_seconds`, `genre[]`, `themes[]`, `moods[]`, `video_url`, `thumbnail_url`, `trailer_url`, `status`, `visibility`, `release_date`, `views_count`, `rating_avg`, `rating_count`.
+**films:** `id`, `director_id` (users), `author_id`, `reviewer_id` nullable, `title`, `slug`, `description`, `duration_seconds`, `genre[]`, `themes[]`, `moods[]`, `video_url`, `thumbnail_url`, `trailer_url`, `status` enum (`draft` / `submitted` / `under_review` / `accepted` / `rejected` / `waitlisted`), `review_notes`, `visibility`, `release_date`, `views_count`, `rating_avg`, `rating_count`. Посетитель видит только `accepted` + опубликованные сеансы. Заявку создаёт Director, не Visitor.
+
+**sessions:** `id`, `film_id`, `hall_id`, `starts_at`, `ends_at`, `ticket_price`, `capacity`, timestamps.
+
+**tickets:** `id`, `session_id`, `user_id`, `seat_row`, `seat_number`, `status`, timestamps.
 
 **film_views:** `id`, `user_id nullable`, `film_id`, `session_id`, `platform`, `started_at`, `last_position_seconds`, `watched_seconds`, `completed`.
 
@@ -390,8 +438,14 @@ Push / Telegram / Email → новый релевантный фильм
 
 ``` text
 auth.users 1—1 users
+users.role ∈ visitor | director | moderator
+users 1—N films (как director_id) / tickets
 users 1—N film_views / ratings / favorites / author_follows / recommendations
 users 1—N subscriptions / notifications / shares / analytics_events
+festival_info (singleton фестиваля)
+halls 1—N sessions
+films 1—N sessions
+sessions 1—N tickets
 authors 1—N films
 collections 1—N collection_films N—1 films
 films 1—N film_views / ratings / favorites / recommendations / notifications / shares
@@ -399,10 +453,15 @@ films 1—N film_views / ratings / favorites / recommendations / notifications /
 
 ### RLS
 
-- `users`: только свои данные.
-- `authors`: public read published profiles; write для автора/модератора.
-- `films`: public read published/public; drafts — автору.
-- `collections`: public read published; write moderator/admin.
+Роли: **visitor** = read-only published; **director** = CRUD своих `films`; **moderator** = full access.
+
+- `users`: только свои данные; `role` меняет moderator / service role.
+- `festival_info`, `halls`: public read; write — moderator.
+- `authors`: public read published profiles; write для режиссёра/модератора.
+- `films`: visitor/anon читает только `accepted` (и видимые в программе); director — CRUD строк с `director_id = auth.uid()`; moderator — полный доступ, пишет `reviewer_id` / `review_notes` / статус.
+- `sessions`: public read опубликованного расписания; write — moderator.
+- `tickets`: visitor читает/создаёт свои; moderator — полный доступ.
+- `collections`: public read published; write moderator.
 - `film_views`: self/Edge Function.
 - `ratings`, `favorites`, `author_follows`: owner write/read.
 - `recommendations`, `subscriptions`, `notifications`: service role для серверных операций, пользователь читает свои данные.
@@ -429,6 +488,10 @@ films 1—N film_views / ratings / favorites / recommendations / notifications /
 **Авторизация:** email/OAuth; первый просмотр без обязательной регистрации. Единый Supabase user ID между Web/Mobile.
 
 **ENV:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, server-side secrets для AI/Telegram.
+
+### 11.2 Mobile companion
+
+Mobile остаётся companion, не primary. MVP-скоуп мобилки сужается до **программы фестиваля + мои билеты (QR)**. Заявки режиссёра и модерация очереди — только Web.
 
 ------------------------------------------------------------------------
 
@@ -460,11 +523,15 @@ films 1—N film_views / ratings / favorites / recommendations / notifications /
 
 ### 13.2 Must Have
 
-**Primary Mobile:** - \[x\] выбор времени → фильм; - \[x\] базовый mood/topic; - \[x\] guest viewing; - \[x\] rule-based recommendation; - \[x\] просмотр и completion; - \[x\] core analytics.
+**Visitor (Web primary):** - \[ \] лендинг отвечает на где / когда / что / расписание / зал / цена; - \[ \] `/program` + фильтр по дню; - \[ \] `/film/:id`, `/session/:id`, `/venues`; - \[ \] бронь места и билет; - \[ \] гостевое чтение опубликованной программы (без добавления фильмов).
 
-**Companion Web:** - \[x\] Home; - \[x\] Catalog + duration filters; - \[x\] Film + player; - \[x\] `/film/:id`; - \[x\] guest viewing.
+**Director (Web):** - \[ \] `/director/apply` — подать заявку; - \[ \] `/director/my` — статус; - \[ \] фидбек (`review_notes`).
 
-**Общее:** - \[x\] Supabase; - \[x\] films/users/guest sessions/views; - \[x\] Auth/sync; - \[x\] Storage/video; - \[x\] analytics.
+**Moderator (Web):** - \[ \] `/moderator/queue` с фильтрами; - \[ \] решение по заявке (`accepted` / `rejected` / `waitlisted`); - \[ \] `/moderator/schedule` — собрать и опубликовать расписание.
+
+**Companion Mobile:** - \[ \] программа; - \[ \] мои билеты (QR).
+
+**Общее:** - \[ \] Supabase; - \[ \] Auth + `users.role`; - \[ \] RLS по трём ролям; - \[ \] `festival_info`, `halls`, `films` (заявки), `sessions`, `tickets`.
 
 ### 13.3 Should Have
 
