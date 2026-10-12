@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { CollectionFormSheet } from "@/components/collection-form-sheet";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import {
   FILM_SELECT,
@@ -68,9 +66,7 @@ export function filmMatchesFilters(
 }
 
 export function Catalog() {
-  const router = useRouter();
-  const { user, role } = useAuth();
-  const canSubmit = role === "director" || role === "moderator";
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [durations, setDurations] = useState<string | null>(null);
   const [moods, setMoods] = useState<string[]>([]);
@@ -82,7 +78,6 @@ export function Catalog() {
   const [editing, setEditing] = useState<CatalogFilm | null>(null);
   const [deleting, setDeleting] = useState<CatalogFilm | null>(null);
   const [deletePending, setDeletePending] = useState(false);
-  const [collectionOpen, setCollectionOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,28 +177,6 @@ export function Catalog() {
       </section>
 
       <section className="mx-auto w-full max-w-[var(--ef-content-width)] px-4 py-8 sm:px-6">
-        {canSubmit ? (
-          <div className="mb-4 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-              className="rounded-[var(--ef-radius-button)] font-light"
-            >
-              Добавить фильм
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setCollectionOpen(true)}
-              className="rounded-[var(--ef-radius-button)] border-[length:var(--ef-border-width)] font-light"
-            >
-              Новая подборка
-            </Button>
-          </div>
-        ) : null}
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -310,14 +283,6 @@ export function Catalog() {
               : [saved, ...current];
           });
           setError(null);
-        }}
-      />
-      <CollectionFormSheet
-        open={collectionOpen}
-        collection={null}
-        onOpenChange={setCollectionOpen}
-        onSaved={(saved) => {
-          router.push(`/collection/${saved.slug}`);
         }}
       />
       <ConfirmDeleteDialog

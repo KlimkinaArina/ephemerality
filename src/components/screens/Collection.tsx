@@ -226,7 +226,7 @@ export function Collection({ slug }: { slug: string }) {
               Изменить
             </Button>
             <Button type="button" variant="outline" onClick={() => setAddOpen(true)}>
-              Добавить фильм
+              В программу
             </Button>
             <Button type="button" variant="ghost" onClick={() => setDeleteOpen(true)}>
               Удалить подборку

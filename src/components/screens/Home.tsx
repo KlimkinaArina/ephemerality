@@ -28,8 +28,7 @@ const LOAD_ERROR =
 export function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, role } = useAuth();
-  const canSubmit = role === "director" || role === "moderator";
+  const { user } = useAuth();
   const [minutes, setMinutes] = useState<string | null>(
     searchParams.get("minutes")
   );
@@ -190,19 +189,6 @@ export function Home() {
           <h2 className="text-[length:var(--ef-text-section)] font-normal uppercase text-foreground">
             Ближайшие показы
           </h2>
-          {canSubmit ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-              className="rounded-[var(--ef-radius-button)] border-[length:var(--ef-border-width)] font-light"
-            >
-              Добавить фильм
-            </Button>
-          ) : null}
         </div>
         {loading ? (
           <div className="grid gap-8 md:grid-cols-3">
