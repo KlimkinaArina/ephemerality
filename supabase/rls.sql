@@ -7,11 +7,22 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  selected_role text;
 begin
-  insert into public.users (id, email)
-  values (new.id, new.email)
+  selected_role := coalesce(new.raw_user_meta_data ->> 'role', 'visitor');
+  if selected_role not in ('visitor', 'director') then
+    selected_role := 'visitor';
+  end if;
+
+  insert into public.users (id, email, role)
+  values (new.id, new.email, selected_role)
   on conflict (id) do update
     set email = excluded.email,
+        role = case
+          when public.users.role = 'moderator' then public.users.role
+          else excluded.role
+        end,
         updated_at = now();
   return new;
 end;

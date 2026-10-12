@@ -15,25 +15,32 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
+import type { UserRole } from "@/lib/roles";
 import { supabase } from "@/lib/supabase";
 
-const nav = [
-  { href: "/app#about", label: "О фестивале" },
-  { href: "/catalog", label: "Программа" },
-  { href: "/search", label: "Приглашенные гости" },
-  { href: "/app#footer", label: "Контакты" },
-];
-
-const accountNav = [
-  { href: "/favorites", label: "Избранное" },
-  { href: "/history", label: "История" },
-  { href: "/profile", label: "Профиль" },
-];
+function navForRole(role: UserRole | null, signedIn: boolean) {
+  const program = { href: "/program", label: "Программа" };
+  if (!signedIn) {
+    return [program, { href: "/venues", label: "Залы" }];
+  }
+  if (role === "moderator") {
+    return [program, { href: "/moderator", label: "Модерация" }];
+  }
+  if (role === "director") {
+    return [program, { href: "/director/my", label: "Мои заявки" }];
+  }
+  return [
+    program,
+    { href: "/venues", label: "Залы" },
+    { href: "/tickets", label: "Мои билеты" },
+  ];
+}
 
 export function CatalogHeader() {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const router = useRouter();
+  const nav = navForRole(role, Boolean(user));
 
   async function onLogout() {
     const { error } = await supabase.auth.signOut();
@@ -42,13 +49,13 @@ export function CatalogHeader() {
       toast.error("Ошибка");
       return;
     }
-    router.replace("/login");
+    router.replace("/");
   }
 
   return (
     <header className="sticky top-0 z-20 bg-background">
       <div className="mx-auto flex h-16 w-full max-w-[var(--ef-content-width)] items-center justify-between gap-4 px-4 sm:h-[var(--ef-header-height)] sm:px-6">
-        <Link href="/app" className="shrink-0">
+        <Link href="/" className="shrink-0">
           <img
             src="/brand/logo.png"
             alt="Эфемерность"
@@ -62,13 +69,6 @@ export function CatalogHeader() {
               {item.label}
             </Link>
           ))}
-          {user
-            ? accountNav.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:opacity-80">
-                  {item.label}
-                </Link>
-              ))
-            : null}
           {user ? (
             <Button
               type="button"
@@ -79,24 +79,14 @@ export function CatalogHeader() {
               Logout
             </Button>
           ) : (
-            <>
-              <Button
-                nativeButton={false}
-                variant="ghost"
-                render={<Link href="/login" />}
-                className="font-light text-[length:var(--ef-text-body)]"
-              >
-                Войти
-              </Button>
-              <Button
-                nativeButton={false}
-                variant="outline"
-                render={<Link href="/auth" />}
-                className="h-[38px] rounded-[var(--ef-radius-button)] border-[length:var(--ef-border-width)] bg-transparent px-5 font-light text-[length:var(--ef-text-body)] hover:bg-transparent"
-              >
-                Купить билеты
-              </Button>
-            </>
+            <Button
+              nativeButton={false}
+              variant="ghost"
+              render={<Link href="/login" />}
+              className="font-light text-[length:var(--ef-text-body)]"
+            >
+              Войти
+            </Button>
           )}
         </nav>
 
@@ -132,21 +122,6 @@ export function CatalogHeader() {
                   {item.label}
                 </SheetClose>
               ))}
-              {user
-                ? accountNav.map((item) => (
-                    <SheetClose
-                      key={item.href}
-                      render={
-                        <Link
-                          href={item.href}
-                          className="rounded-[var(--ef-radius-button)] px-2 py-2 text-[length:var(--ef-text-body)] font-light text-foreground hover:bg-muted"
-                        />
-                      }
-                    >
-                      {item.label}
-                    </SheetClose>
-                  ))
-                : null}
               {user ? (
                 <Button
                   type="button"
@@ -160,28 +135,16 @@ export function CatalogHeader() {
                   Logout
                 </Button>
               ) : (
-                <>
-                  <SheetClose
-                    render={
-                      <Link
-                        href="/login"
-                        className="mt-2 rounded-[var(--ef-radius-button)] px-2 py-2 text-center font-light"
-                      />
-                    }
-                  >
-                    Войти
-                  </SheetClose>
-                  <SheetClose
-                    render={
-                      <Link
-                        href="/auth"
-                        className="rounded-[var(--ef-radius-button)] border border-border px-2 py-2 text-center font-light"
-                      />
-                    }
-                  >
-                    Купить билеты
-                  </SheetClose>
-                </>
+                <SheetClose
+                  render={
+                    <Link
+                      href="/login"
+                      className="mt-2 rounded-[var(--ef-radius-button)] px-2 py-2 text-center font-light"
+                    />
+                  }
+                >
+                  Войти
+                </SheetClose>
               )}
             </nav>
           </SheetContent>

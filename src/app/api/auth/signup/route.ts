@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { email?: string; password?: string };
+  let body: { email?: string; password?: string; role?: string };
   try {
     body = await request.json();
   } catch {
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
 
   const email = body.email?.trim();
   const password = body.password;
+  const role = body.role === "director" ? "director" : "visitor";
   if (!email || !password) {
     return NextResponse.json({ message: "Укажите email и пароль" }, { status: 400 });
   }
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
       password,
       options: {
         emailRedirectTo: origin ? `${origin}/login` : undefined,
+        data: { role },
       },
     });
     if (error) {

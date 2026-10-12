@@ -10,14 +10,16 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
+import { loadSessionRole, useAuth } from "@/hooks/useAuth";
 import { applyAuthSession, authApiMessage } from "@/lib/auth-session";
+import { postLoginPath } from "@/lib/roles";
 
 const schema = z
   .object({
     email: z.string().email("Укажите email"),
     password: z.string().min(6, "Минимум 6 символов"),
     confirm: z.string().min(6, "Подтвердите пароль"),
+    role: z.enum(["visitor", "director"]),
   })
   .refine((values) => values.password === values.confirm, {
     message: "Пароли не совпадают",
@@ -29,8 +31,8 @@ type Values = z.infer<typeof schema>;
 export function Signup() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
-  const next = searchParams.get("next") || "/favorites";
+  const { user, role, loading } = useAuth();
+  const next = searchParams.get("next");
   const [checkEmail, setCheckEmail] = useState(false);
 
   const {
@@ -39,12 +41,12 @@ export function Signup() {
     formState: { errors, isSubmitting },
   } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", password: "", confirm: "" },
+    defaultValues: { email: "", password: "", confirm: "", role: "visitor" },
   });
 
   useEffect(() => {
-    if (!loading && user) router.replace(next);
-  }, [loading, user, next, router]);
+    if (!loading && user) router.replace(postLoginPath(role, next));
+  }, [loading, user, role, next, router]);
 
   async function onSubmit(values: Values) {
     let response: Response;
@@ -55,6 +57,7 @@ export function Signup() {
         body: JSON.stringify({
           email: values.email,
           password: values.password,
+          role: values.role,
         }),
       });
     } catch (error) {
@@ -80,7 +83,8 @@ export function Signup() {
     const signedIn = await applyAuthSession(payload);
     if (signedIn) {
       toast.success("Сохранено");
-      router.replace(next);
+      const sessionRole = await loadSessionRole();
+      router.replace(postLoginPath(sessionRole ?? values.role, next));
       return;
     }
     setCheckEmail(true);
@@ -152,6 +156,34 @@ export function Signup() {
             <p className="text-sm text-destructive">{errors.confirm.message}</p>
           ) : null}
         </div>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">Кто вы</legend>
+          <label className="flex cursor-pointer items-start gap-3 rounded-[var(--ef-radius-button)] border border-border px-3 py-3">
+            <input
+              type="radio"
+              value="visitor"
+              className="mt-1"
+              {...register("role")}
+            />
+            <span className="text-[length:var(--ef-text-body)] font-light">
+              Хочу смотреть фильмы
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 rounded-[var(--ef-radius-button)] border border-border px-3 py-3">
+            <input
+              type="radio"
+              value="director"
+              className="mt-1"
+              {...register("role")}
+            />
+            <span className="text-[length:var(--ef-text-body)] font-light">
+              Хочу подать фильм
+            </span>
+          </label>
+          {errors.role ? (
+            <p className="text-sm text-destructive">{errors.role.message}</p>
+          ) : null}
+        </fieldset>
         <Button
           type="submit"
           disabled={isSubmitting}

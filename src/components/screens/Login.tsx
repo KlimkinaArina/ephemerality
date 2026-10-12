@@ -10,8 +10,9 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
+import { loadSessionRole, useAuth } from "@/hooks/useAuth";
 import { applyAuthSession, authApiMessage } from "@/lib/auth-session";
+import { postLoginPath } from "@/lib/roles";
 
 const schema = z.object({
   email: z.string().email("Укажите email"),
@@ -23,8 +24,8 @@ type Values = z.infer<typeof schema>;
 export function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
-  const next = searchParams.get("next") || "/favorites";
+  const { user, role, loading } = useAuth();
+  const next = searchParams.get("next");
 
   const {
     register,
@@ -36,8 +37,8 @@ export function Login() {
   });
 
   useEffect(() => {
-    if (!loading && user) router.replace(next);
-  }, [loading, user, next, router]);
+    if (!loading && user) router.replace(postLoginPath(role, next));
+  }, [loading, user, role, next, router]);
 
   async function onSubmit(values: Values) {
     let response: Response;
@@ -76,7 +77,8 @@ export function Login() {
       return;
     }
     toast.success("Сохранено");
-    router.replace(next);
+    const sessionRole = await loadSessionRole();
+    router.replace(postLoginPath(sessionRole, next));
   }
 
   return (
@@ -85,7 +87,7 @@ export function Login() {
         Вход
       </h1>
       <p className="mt-3 text-[length:var(--ef-text-body)] font-light text-muted-foreground">
-        Каталог открыт без аккаунта. Войдите, чтобы открыть избранное и профиль.
+        Программа открыта без аккаунта. Войдите, чтобы оформить билет или открыть кабинет.
       </p>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
         <div className="space-y-1">

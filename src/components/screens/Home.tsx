@@ -28,7 +28,8 @@ const LOAD_ERROR =
 export function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canSubmit = role === "director" || role === "moderator";
   const [minutes, setMinutes] = useState<string | null>(
     searchParams.get("minutes")
   );
@@ -189,7 +190,7 @@ export function Home() {
           <h2 className="text-[length:var(--ef-text-section)] font-normal uppercase text-foreground">
             Ближайшие показы
           </h2>
-          {user ? (
+          {canSubmit ? (
             <Button
               type="button"
               variant="outline"
