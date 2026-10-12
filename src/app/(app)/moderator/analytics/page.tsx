@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { ModeratorAnalytics } from "@/components/screens/ModeratorAnalytics";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Аналитика"
-      description="Заявки, сеансы и билеты."
-    />
-  );
+  return <ModeratorAnalytics />;
 }

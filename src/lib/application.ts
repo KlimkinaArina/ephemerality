@@ -12,6 +12,16 @@ export const APPLICATION_GENRES = [
 export const APPLICATION_SELECT =
   "id, title, slug, description, duration_seconds, genre, themes, moods, video_url, thumbnail_url, status, review_notes, submitted_at, release_date, director_id, user_id, author_id, created_at, visibility" as const;
 
+export const MODERATION_SELECT = `${APPLICATION_SELECT}, authors(name)` as const;
+
+export const COMMENT_TEMPLATES = [
+  "Не соответствует программе",
+  "Нужен трейлер",
+  "Превышена длительность",
+  "Недостаточное качество изображения",
+  "Технические проблемы со ссылкой",
+] as const;
+
 export type ApplicationStatus =
   | "draft"
   | "submitted"

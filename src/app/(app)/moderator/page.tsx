@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { ModeratorDashboard } from "@/components/screens/ModeratorDashboard";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Модерация"
-      description="Очередь заявок, расписание и публикация программы."
-    />
-  );
+  return <ModeratorDashboard />;
 }

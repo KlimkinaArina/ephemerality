@@ -191,8 +191,12 @@ create table if not exists public.sessions (
   ends_at timestamptz not null,
   ticket_price numeric(10, 2) not null default 0 check (ticket_price >= 0),
   capacity integer not null check (capacity >= 0),
+  is_published boolean not null default false,
   check (ends_at > starts_at)
 );
+
+alter table public.sessions
+  add column if not exists is_published boolean not null default false;
 
 drop trigger if exists sessions_set_updated_at on public.sessions;
 create trigger sessions_set_updated_at
@@ -343,7 +347,7 @@ with check (public.user_is_moderator());
 drop policy if exists sessions_select_public on public.sessions;
 create policy sessions_select_public on public.sessions
 for select to anon, authenticated
-using (true);
+using (is_published = true or public.user_is_moderator());
 
 drop policy if exists sessions_write_moderator on public.sessions;
 create policy sessions_write_moderator on public.sessions

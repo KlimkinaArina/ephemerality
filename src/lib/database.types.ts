@@ -615,6 +615,7 @@ export type Database = {
           ends_at: string;
           ticket_price: number;
           capacity: number;
+          is_published: boolean;
         };
         Insert: {
           id?: string;
@@ -626,6 +627,7 @@ export type Database = {
           ends_at: string;
           ticket_price?: number;
           capacity: number;
+          is_published?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["sessions"]["Insert"]>;
         Relationships: [

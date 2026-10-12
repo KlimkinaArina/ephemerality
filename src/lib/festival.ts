@@ -1,5 +1,7 @@
 export const SESSION_SELECT =
-  "id, starts_at, ends_at, ticket_price, capacity, film_id, hall_id, films(id, title, slug, description, duration_seconds, genre, themes, thumbnail_url, share_image_url, release_date, authors(name)), halls(id, name, address, capacity)" as const;
+  "id, starts_at, ends_at, ticket_price, capacity, film_id, hall_id, is_published, films(id, title, slug, description, duration_seconds, genre, themes, thumbnail_url, share_image_url, release_date, authors(name)), halls(id, name, address, capacity)" as const;
+
+export const DEFAULT_TICKET_PRICE = 350;
 
 export const SEAT_ROWS = 10;
 export const SEAT_COLS = 10;
@@ -42,6 +44,7 @@ export type FestivalSession = {
   capacity: number;
   film_id: string;
   hall_id: string;
+  is_published?: boolean;
   film: FestivalFilm;
   hall: FestivalHall;
 };
@@ -153,6 +156,7 @@ export function mapFestivalSession(row: {
   capacity: number;
   film_id: string;
   hall_id: string;
+  is_published?: boolean | null;
   films: FilmEmbed | FilmEmbed[] | null;
   halls: HallEmbed | HallEmbed[] | null;
 }): FestivalSession | null {
@@ -167,6 +171,7 @@ export function mapFestivalSession(row: {
     capacity: row.capacity,
     film_id: row.film_id,
     hall_id: row.hall_id,
+    is_published: Boolean(row.is_published),
     film: mapFestivalFilm(film),
     hall,
   };

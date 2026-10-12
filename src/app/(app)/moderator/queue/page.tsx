@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { ModeratorQueue } from "@/components/screens/ModeratorQueue";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Очередь заявок"
-      description="Фильтры и разбор входящих заявок режиссёров."
-    />
-  );
+  return <ModeratorQueue />;
 }

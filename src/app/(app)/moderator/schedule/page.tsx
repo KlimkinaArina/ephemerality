@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { ModeratorSchedule } from "@/components/screens/ModeratorSchedule";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Расписание"
-      description="Сеансы, залы, цена и публикация программы."
-    />
-  );
+  return <ModeratorSchedule />;
 }

@@ -1,11 +1,10 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { ModeratorFilm } from "@/components/screens/ModeratorFilm";
 
-export default async function Page(props: PageProps<"/moderator/film/[id]">) {
-  const { id } = await props.params;
-  return (
-    <AccountScreen
-      title="Заявка"
-      description={`Решение по заявке ${id} и заметка режиссёру.`}
-    />
-  );
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <ModeratorFilm id={id} />;
 }

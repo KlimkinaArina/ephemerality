@@ -58,12 +58,16 @@ export function Program() {
         ] = await Promise.all([
           supabase.from("festival_info").select("*").eq("id", 1).maybeSingle(),
           supabase.from("halls").select("id, name, address, capacity").order("name"),
-          supabase.from("sessions").select(SESSION_SELECT).order("starts_at"),
+          supabase
+            .from("sessions")
+            .select(SESSION_SELECT)
+            .eq("is_published", true)
+            .order("starts_at"),
         ]);
 
         if (cancelled) return;
         const queryError = festivalError || hallError || sessionError;
-        if (queryError && queryError.code !== "PGRST205") {
+        if (queryError && queryError.code !== "PGRST205" && queryError.code !== "PGRST204") {
           console.error(queryError.message);
           toast.error(LOAD_ERROR);
           setError(LOAD_ERROR);

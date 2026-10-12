@@ -101,6 +101,7 @@ export function Landing() {
           supabase
             .from("sessions")
             .select("id, starts_at, film_id, films(title), halls(name)")
+            .eq("is_published", true)
             .order("starts_at")
             .limit(40),
         ]);
