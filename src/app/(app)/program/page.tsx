@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { Program } from "@/components/screens/Program";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Программа"
-      description="Расписание фестиваля: день, зал, сеанс и цена."
-    />
-  );
+  return <Program />;
 }

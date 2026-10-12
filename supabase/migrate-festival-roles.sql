@@ -352,10 +352,13 @@ using (public.user_is_moderator())
 with check (public.user_is_moderator());
 
 -- tickets
+-- Occupancy is public so /session seat map works in incognito.
+-- /tickets still filters by user_id in the client.
 drop policy if exists tickets_select_own on public.tickets;
-create policy tickets_select_own on public.tickets
+drop policy if exists tickets_select_public on public.tickets;
+create policy tickets_select_public on public.tickets
 for select to anon, authenticated
-using (user_id = auth.uid());
+using (true);
 
 drop policy if exists tickets_insert_capacity on public.tickets;
 create policy tickets_insert_capacity on public.tickets

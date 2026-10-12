@@ -1,11 +1,10 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { Session } from "@/components/screens/Session";
 
-export default async function Page(props: PageProps<"/session/[id]">) {
-  const { id } = await props.params;
-  return (
-    <AccountScreen
-      title="Сеанс"
-      description={`Сеанс ${id}: время, зал, цена и места.`}
-    />
-  );
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <Session id={id} />;
 }

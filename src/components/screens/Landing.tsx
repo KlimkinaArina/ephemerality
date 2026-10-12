@@ -68,9 +68,12 @@ function addDays(isoDate: string, days: number) {
   return date;
 }
 
-function embedName(value: { name: string } | { name: string }[] | null) {
+function embedName(
+  value: { name?: string; title?: string } | { name?: string; title?: string }[] | null
+) {
   if (!value) return "";
-  return (Array.isArray(value) ? value[0] : value)?.name ?? "";
+  const row = Array.isArray(value) ? value[0] : value;
+  return row?.name ?? row?.title ?? "";
 }
 
 function mapUrl(query: string) {

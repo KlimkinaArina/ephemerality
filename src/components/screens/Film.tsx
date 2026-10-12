@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
@@ -17,6 +18,14 @@ import { ErrorState } from "@/components/film-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  formatClock,
+  formatDay,
+  formatPrice,
+  mapFestivalSession,
+  SESSION_SELECT,
+  type FestivalSession,
+} from "@/lib/festival";
 import { supabase } from "@/lib/supabase";
 
 const LOAD_ERROR =
@@ -64,6 +73,7 @@ export function Film({ id }: { id: string }) {
   const [playing, setPlaying] = useState(false);
   const [shared, setShared] = useState(false);
   const [film, setFilm] = useState<FilmDetail | null>(null);
+  const [sessions, setSessions] = useState<FestivalSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -94,9 +104,28 @@ export function Film({ id }: { id: string }) {
         }
         if (!data) {
           setFilm(null);
+          setSessions([]);
           return;
         }
-        setFilm(toDetail(toCatalogFilm(data)));
+        const mapped = toDetail(toCatalogFilm(data));
+        setFilm(mapped);
+        const { data: sessionRows, error: sessionError } = await supabase
+          .from("sessions")
+          .select(SESSION_SELECT)
+          .eq("film_id", mapped.id)
+          .order("starts_at");
+        if (cancelled) return;
+        if (sessionError) {
+          console.error(sessionError);
+        } else {
+          setSessions(
+            (sessionRows ?? [])
+              .map((row) =>
+                mapFestivalSession(row as Parameters<typeof mapFestivalSession>[0])
+              )
+              .filter((row): row is FestivalSession => Boolean(row))
+          );
+        }
       } catch (err) {
         if (cancelled) return;
         console.error(err);
@@ -178,13 +207,23 @@ export function Film({ id }: { id: string }) {
               Реж. {film.author}
             </p>
             <p className="text-[length:var(--ef-text-body)] font-normal text-foreground">
-              {formatDuration(film.durationSeconds)}
-              {film.year ? (
+              {film.year ? `${film.year}` : ""}
+              {film.themes[0] ? (
                 <>
-                  <span className="mx-3">/</span>
-                  {film.year}
+                  {film.year ? <span className="mx-3">/</span> : null}
+                  {film.themes[0]}
                 </>
               ) : null}
+              {film.genre.length ? (
+                <>
+                  <span className="mx-3">/</span>
+                  {film.genre.join(", ")}
+                </>
+              ) : null}
+              <>
+                <span className="mx-3">/</span>
+                {formatDuration(film.durationSeconds)}
+              </>
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Button
@@ -301,22 +340,53 @@ export function Film({ id }: { id: string }) {
           <div className="hidden w-px bg-foreground lg:block" aria-hidden />
           <dl className="space-y-6 text-[length:var(--ef-text-cta)] text-foreground">
             <div>
-              <dt className="font-extralight">Режисер</dt>
+              <dt className="font-extralight">Режиссёр</dt>
               <dd className="font-normal">{film.author}</dd>
             </div>
             <div>
-              <dt className="font-extralight">Сценарий</dt>
-              <dd className="font-normal">{film.author}</dd>
+              <dt className="font-extralight">Год</dt>
+              <dd className="font-normal">{film.year || "—"}</dd>
             </div>
             <div>
-              <dt className="font-extralight">Оператор</dt>
-              <dd className="font-normal">{film.author}</dd>
+              <dt className="font-extralight">Страна</dt>
+              <dd className="font-normal">{film.themes[0] || "—"}</dd>
             </div>
             <div>
-              <dt className="font-extralight">В ролях</dt>
-              <dd className="font-normal">{film.author}</dd>
+              <dt className="font-extralight">Жанр</dt>
+              <dd className="font-normal">{film.genre.join(", ") || "—"}</dd>
+            </div>
+            <div>
+              <dt className="font-extralight">Длительность</dt>
+              <dd className="font-normal">{formatDuration(film.durationSeconds)}</dd>
             </div>
           </dl>
+        </div>
+
+        <div className="mt-16">
+          <h2 className="text-[length:var(--ef-text-body)] font-normal uppercase">
+            Сеансы
+          </h2>
+          {sessions.length === 0 ? (
+            <p className="mt-4 text-[length:var(--ef-text-body)] font-light text-muted-foreground">
+              Сеансов пока нет.
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-foreground/15">
+              {sessions.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href={`/session/${item.id}`}
+                    className="grid gap-1 py-4 sm:grid-cols-[8rem_6rem_minmax(0,1fr)_auto] sm:items-baseline sm:gap-6"
+                  >
+                    <span>{formatDay(item.starts_at)}</span>
+                    <span className="tabular-nums">{formatClock(item.starts_at)}</span>
+                    <span className="font-light">{item.hall.name}</span>
+                    <span className="font-light">{formatPrice(item.ticket_price)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {stills.length > 0 ? (

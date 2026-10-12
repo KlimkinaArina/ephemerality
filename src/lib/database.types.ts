@@ -108,6 +108,11 @@ export type Database = {
           views_count: number;
           rating_avg: number;
           rating_count: number;
+          director_id: string | null;
+          reviewer_id: string | null;
+          review_notes: string | null;
+          submitted_at: string | null;
+          reviewed_at: string | null;
         };
         Insert: {
           id?: string;
@@ -132,6 +137,11 @@ export type Database = {
           views_count?: number;
           rating_avg?: number;
           rating_count?: number;
+          director_id?: string | null;
+          reviewer_id?: string | null;
+          review_notes?: string | null;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["films"]["Insert"]>;
         Relationships: [
@@ -543,6 +553,127 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ai_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      festival_info: {
+        Row: {
+          id: number;
+          created_at: string;
+          updated_at: string;
+          name: string;
+          starts_on: string | null;
+          ends_on: string | null;
+          city: string | null;
+          address: string | null;
+          description: string | null;
+          hero_image: string | null;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          updated_at?: string;
+          name?: string;
+          starts_on?: string | null;
+          ends_on?: string | null;
+          city?: string | null;
+          address?: string | null;
+          description?: string | null;
+          hero_image?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["festival_info"]["Insert"]>;
+        Relationships: [];
+      };
+      halls: {
+        Row: Timestamps & {
+          name: string;
+          address: string | null;
+          capacity: number;
+          seat_map_url: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          name: string;
+          address?: string | null;
+          capacity?: number;
+          seat_map_url?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["halls"]["Insert"]>;
+        Relationships: [];
+      };
+      sessions: {
+        Row: Timestamps & {
+          film_id: string;
+          hall_id: string;
+          starts_at: string;
+          ends_at: string;
+          ticket_price: number;
+          capacity: number;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          film_id: string;
+          hall_id: string;
+          starts_at: string;
+          ends_at: string;
+          ticket_price?: number;
+          capacity: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["sessions"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "sessions_film_id_fkey";
+            columns: ["film_id"];
+            isOneToOne: false;
+            referencedRelation: "films";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_hall_id_fkey";
+            columns: ["hall_id"];
+            isOneToOne: false;
+            referencedRelation: "halls";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tickets: {
+        Row: Timestamps & {
+          session_id: string;
+          user_id: string | null;
+          seat_row: string | null;
+          seat_number: string | null;
+          status: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          session_id: string;
+          user_id?: string | null;
+          seat_row?: string | null;
+          seat_number?: string | null;
+          status?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["tickets"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "tickets_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tickets_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";

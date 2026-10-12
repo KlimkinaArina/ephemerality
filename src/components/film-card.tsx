@@ -13,6 +13,7 @@ export type CatalogFilm = {
   durationSeconds: number;
   moods: string[];
   themes: string[];
+  genre: string[];
   synopsis: string;
   thumbnailUrl?: string;
   shareImageUrl?: string;
@@ -22,7 +23,7 @@ export type CatalogFilm = {
 };
 
 export const FILM_SELECT =
-  "id, title, slug, description, duration_seconds, moods, themes, thumbnail_url, share_image_url, release_date, author_id, user_id, authors(id, name, user_id)" as const;
+  "id, title, slug, description, duration_seconds, genre, moods, themes, thumbnail_url, share_image_url, release_date, author_id, user_id, authors(id, name, user_id)" as const;
 
 /** @deprecated use CatalogFilm */
 export type MockFilm = CatalogFilm;
@@ -55,6 +56,7 @@ export function toCatalogFilm(row: {
   title: string;
   description: string | null;
   duration_seconds: number;
+  genre?: string[] | null;
   moods: string[] | null;
   themes: string[] | null;
   thumbnail_url: string | null;
@@ -74,6 +76,7 @@ export function toCatalogFilm(row: {
     ownerId: row.user_id ?? author.userId ?? "",
     year: row.release_date ? Number(row.release_date.slice(0, 4)) : 0,
     durationSeconds: row.duration_seconds,
+    genre: row.genre ?? [],
     moods: row.moods ?? [],
     themes: row.themes ?? [],
     synopsis: row.description ?? "",
