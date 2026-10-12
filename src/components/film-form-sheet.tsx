@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
+import { slugify } from "@/lib/slug";
 import { supabase } from "@/lib/supabase";
 
 const filmSchema = z.object({
@@ -45,16 +46,6 @@ const filmSchema = z.object({
 });
 
 type FilmFormValues = z.infer<typeof filmSchema>;
-
-function slugify(value: string) {
-  const slug = value
-    .trim()
-    .toLowerCase()
-    .replace(/ё/g, "е")
-    .replace(/[^a-z0-9а-я]+/gi, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug || "film";
-}
 
 function splitTags(value?: string) {
   return (value ?? "")

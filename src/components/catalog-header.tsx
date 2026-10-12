@@ -21,13 +21,21 @@ import { supabase } from "@/lib/supabase";
 function navForRole(role: UserRole | null, signedIn: boolean) {
   const program = { href: "/program", label: "Программа" };
   if (!signedIn) {
-    return [program, { href: "/venues", label: "Залы" }];
+    return [
+      program,
+      { href: "/venues", label: "Залы" },
+      { href: "/director", label: "Режиссёрам" },
+    ];
   }
   if (role === "moderator") {
     return [program, { href: "/moderator", label: "Модерация" }];
   }
   if (role === "director") {
-    return [program, { href: "/director/my", label: "Мои заявки" }];
+    return [
+      program,
+      { href: "/director/apply", label: "Подать заявку" },
+      { href: "/director/my", label: "Мои заявки" },
+    ];
   }
   return [
     program,

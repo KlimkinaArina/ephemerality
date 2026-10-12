@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { DirectorApply } from "@/components/screens/DirectorApply";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Подать заявку"
-      description="Отправьте короткометражку на рассмотрение программы."
-    />
-  );
+  return <DirectorApply />;
 }

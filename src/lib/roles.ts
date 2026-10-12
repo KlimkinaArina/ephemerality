@@ -9,6 +9,7 @@ export function parseUserRole(value: string | null | undefined): UserRole | null
 
 export function isPathAllowed(role: UserRole | null, path: string) {
   if (path.startsWith("/moderator")) return role === "moderator";
+  if (path === "/director" || path === "/director/") return true;
   if (path.startsWith("/director")) {
     return role === "director" || role === "moderator";
   }

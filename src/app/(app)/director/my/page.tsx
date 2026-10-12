@@ -1,10 +1,5 @@
-import { AccountScreen } from "@/components/screens/AccountScreen";
+import { DirectorMy } from "@/components/screens/DirectorMy";
 
 export default function Page() {
-  return (
-    <AccountScreen
-      title="Мои заявки"
-      description="Статусы поданных фильмов и фидбек модератора."
-    />
-  );
+  return <DirectorMy />;
 }

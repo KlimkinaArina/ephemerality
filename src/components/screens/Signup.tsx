@@ -33,16 +33,27 @@ export function Signup() {
   const searchParams = useSearchParams();
   const { user, role, loading } = useAuth();
   const next = searchParams.get("next");
+  const roleParam = searchParams.get("role");
   const [checkEmail, setCheckEmail] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", password: "", confirm: "", role: "visitor" },
+    defaultValues: {
+      email: "",
+      password: "",
+      confirm: "",
+      role: roleParam === "director" ? "director" : "visitor",
+    },
   });
+
+  useEffect(() => {
+    if (roleParam === "director") setValue("role", "director");
+  }, [roleParam, setValue]);
 
   useEffect(() => {
     if (!loading && user) router.replace(postLoginPath(role, next));

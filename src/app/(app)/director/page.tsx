@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { DirectorLanding } from "@/components/screens/DirectorLanding";
 
 export default function Page() {
-  redirect("/director/my");
+  return <DirectorLanding />;
 }
