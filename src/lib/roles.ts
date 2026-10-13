@@ -4,7 +4,15 @@ export function parseUserRole(value: string | null | undefined): UserRole | null
   if (value === "visitor" || value === "director" || value === "moderator") {
     return value;
   }
+  if (value === "author") return "director";
+  if (value === "viewer") return "visitor";
   return null;
+}
+
+export function roleFromUserMetadata(metadata: unknown): UserRole | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const role = (metadata as { role?: unknown }).role;
+  return typeof role === "string" ? parseUserRole(role) : null;
 }
 
 export function isPathAllowed(role: UserRole | null, path: string) {

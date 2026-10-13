@@ -39,10 +39,19 @@ security definer
 set search_path = public
 as $$
 begin
-  if new.role is distinct from old.role
-     and coalesce(auth.role(), '') is distinct from 'service_role' then
-    new.role := old.role;
+  if new.role is not distinct from old.role then
+    return new;
   end if;
+  if coalesce(auth.role(), '') = 'service_role' then
+    return new;
+  end if;
+  -- Self-upgrade after signup: visitor → director (JWT metadata).
+  if old.role = 'visitor'
+     and new.role = 'director'
+     and new.id = auth.uid() then
+    return new;
+  end if;
+  new.role := old.role;
   return new;
 end;
 $$;
@@ -423,12 +432,13 @@ begin
     selected_role := 'visitor';
   end if;
 
-  insert into public.users (id, email, role)
-  values (new.id, new.email, selected_role)
+  insert into public.users (id, email, role, last_platform)
+  values (new.id, new.email, selected_role, 'web')
   on conflict (id) do update
     set email = excluded.email,
         role = case
           when public.users.role = 'moderator' then public.users.role
+          when public.users.role = 'director' then public.users.role
           else excluded.role
         end,
         updated_at = now();

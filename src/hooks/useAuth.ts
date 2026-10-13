@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
-import { parseUserRole, type UserRole } from "@/lib/roles";
+import { parseUserRole, roleFromUserMetadata, type UserRole } from "@/lib/roles";
 import { supabase } from "@/lib/supabase";
 
 type AuthValue = {
@@ -24,18 +24,6 @@ const AuthContext = createContext<AuthValue>({
   loading: true,
 });
 
-async function syncProfile(user: User) {
-  const { error } = await supabase.from("users").upsert(
-    {
-      id: user.id,
-      email: user.email ?? null,
-      last_platform: "web",
-    },
-    { onConflict: "id" }
-  );
-  if (error) console.error(error);
-}
-
 async function fetchRole(userId: string) {
   const { data, error } = await supabase
     .from("users")
@@ -47,6 +35,26 @@ async function fetchRole(userId: string) {
     return null;
   }
   return parseUserRole(data?.role);
+}
+
+async function ensureProfile(user: User): Promise<UserRole | null> {
+  const fromMeta = roleFromUserMetadata(user.user_metadata);
+  const desired =
+    fromMeta === "director" || fromMeta === "visitor" ? fromMeta : null;
+
+  const { error } = await supabase.from("users").upsert(
+    {
+      id: user.id,
+      email: user.email ?? null,
+      last_platform: "web",
+      ...(desired ? { role: desired } : {}),
+    },
+    { onConflict: "id" }
+  );
+  if (error) console.error(error);
+
+  const fromDb = await fetchRole(user.id);
+  return fromDb ?? desired;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -65,8 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         return;
       }
-      void syncProfile(nextUser);
-      const nextRole = await fetchRole(nextUser.id);
+      const nextRole = await ensureProfile(nextUser);
       if (cancelled) return;
       setUser(nextUser);
       setRole(nextRole);
@@ -109,7 +116,7 @@ export function useAuth() {
 
 export async function loadSessionRole() {
   const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
-  if (!userId) return null;
-  return fetchRole(userId);
+  const user = data.user;
+  if (!user) return null;
+  return ensureProfile(user);
 }
