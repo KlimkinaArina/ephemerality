@@ -53,6 +53,33 @@ function titleLines(title: string) {
   return [parts.slice(0, -1).join(" "), parts[parts.length - 1]];
 }
 
+function FilmSynopsis({ text }: { text: string }) {
+  const body = text.trim() || "Описание появится позже.";
+  const long = body.length > 320;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="min-w-0 max-w-[749px]">
+      <p
+        className={`break-words text-[length:var(--ef-text-cta)] font-normal leading-normal text-foreground ${
+          long && !open ? "line-clamp-6" : ""
+        }`}
+      >
+        {body}
+      </p>
+      {long ? (
+        <button
+          type="button"
+          onClick={() => setOpen((current) => !current)}
+          className="mt-3 text-[length:var(--ef-text-meta)] font-extralight underline underline-offset-4"
+        >
+          {open ? "Свернуть" : "Читать полностью"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function DayRule() {
   return (
     <div className="flex items-center gap-3">
@@ -193,7 +220,7 @@ export function Film({ id }: { id: string }) {
     <article>
       <section className="relative bg-film">
         <div className="mx-auto grid min-h-[615px] w-full max-w-[var(--ef-content-width)] lg:grid-cols-[minmax(0,1fr)_42%]">
-          <div className="relative z-10 flex flex-col justify-center gap-6 px-4 py-16 sm:px-6">
+          <div className="relative z-10 flex min-w-0 flex-col justify-center gap-6 px-4 py-16 sm:px-6">
             <h1 className="font-medium leading-[0.93] tracking-[var(--ef-tracking-film)] text-foreground text-[clamp(2rem,6vw,var(--ef-text-display))]">
               {line1}
               {line2 ? (
@@ -333,12 +360,10 @@ export function Film({ id }: { id: string }) {
           </div>
         ) : null}
 
-        <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto_minmax(16rem,20rem)]">
-          <p className="max-w-[749px] text-[length:var(--ef-text-cta)] font-normal leading-normal text-foreground">
-            {film.body || "Описание появится позже."}
-          </p>
-          <div className="hidden w-px bg-foreground lg:block" aria-hidden />
-          <dl className="space-y-6 text-[length:var(--ef-text-cta)] text-foreground">
+        <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto_minmax(16rem,20rem)] lg:items-start">
+          <FilmSynopsis text={film.body} />
+          <div className="hidden w-px self-stretch bg-foreground lg:block" aria-hidden />
+          <dl className="min-w-0 space-y-6 text-[length:var(--ef-text-cta)] text-foreground">
             <div>
               <dt className="font-extralight">Режиссёр</dt>
               <dd className="font-normal">{film.author}</dd>

@@ -126,7 +126,7 @@ export function FilmCard({
             {formatDuration(film.durationSeconds)}
           </p>
         </div>
-        <p className="max-w-[211px] text-[length:var(--ef-text-meta)] font-normal leading-normal text-foreground">
+        <p className="min-w-0 max-w-[211px] break-words line-clamp-4 text-[length:var(--ef-text-meta)] font-normal leading-normal text-foreground">
           {film.synopsis}
         </p>
         <div className="sm:text-right">

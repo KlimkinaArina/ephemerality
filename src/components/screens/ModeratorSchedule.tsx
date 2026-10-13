@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { formatDuration } from "@/components/film-card";
 import { ModeratorNav } from "@/components/moderator-nav";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   APPLICATION_SELECT,
@@ -24,10 +34,20 @@ import {
 } from "@/lib/festival";
 import { supabase } from "@/lib/supabase";
 
-const FILM_DRAG = "application/x-ef-film";
+const BUFFER_MINUTES = 15;
+const OVERLAP_ERROR =
+  "Сеанс пересекается с другим в этом зале (учтены длительность и буфер 15 мин).";
 
 function overlaps(startA: number, endA: number, startB: number, endB: number) {
   return startA < endB && endA > startB;
+}
+
+function durationMin(seconds: number) {
+  return Math.max(1, Math.round(seconds / 60));
+}
+
+function sessionSpanMs(film: ApplicationRow) {
+  return (film.duration_seconds + BUFFER_MINUTES * 60) * 1000;
 }
 
 export function ModeratorSchedule() {
@@ -36,11 +56,10 @@ export function ModeratorSchedule() {
   const [sessions, setSessions] = useState<FestivalSession[]>([]);
   const [accepted, setAccepted] = useState<ApplicationRow[]>([]);
   const [day, setDay] = useState("");
-  const [hover, setHover] = useState<{ hallId: string; start: number } | null>(null);
-  const [dragFilmId, setDragFilmId] = useState<string | null>(null);
   const [publishedIds, setPublishedIds] = useState<string[] | null>(null);
   const [rollbackUntil, setRollbackUntil] = useState(0);
   const [now, setNow] = useState(Date.now());
+  const [picked, setPicked] = useState<ApplicationRow | null>(null);
 
   const days = useMemo(() => festivalDayKeys(startsOn), [startsOn]);
 
@@ -83,7 +102,7 @@ export function ModeratorSchedule() {
       setSessions(
         (sessionRows ?? [])
           .map((row) => mapFestivalSession(row as Parameters<typeof mapFestivalSession>[0]))
-          .filter((row): row is FestivalSession => Boolean(row))
+          .filter((row): row is FestivalSession => row != null)
       );
       setAccepted((filmRows ?? []) as ApplicationRow[]);
     } catch (error) {
@@ -93,27 +112,31 @@ export function ModeratorSchedule() {
   }
 
   useEffect(() => {
-    load();
+    void load();
   }, []);
 
-  const scheduledIds = useMemo(
-    () => new Set(sessions.map((session) => session.film_id)),
-    [sessions]
+  const sessionCountByFilm = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const session of sessions) {
+      counts.set(session.film_id, (counts.get(session.film_id) ?? 0) + 1);
+    }
+    return counts;
+  }, [sessions]);
+
+  const withoutSessions = accepted.filter(
+    (film) => (sessionCountByFilm.get(film.id) ?? 0) === 0
   );
-  const unscheduled = accepted.filter((film) => !scheduledIds.has(film.id));
+  const withSessions = accepted.filter(
+    (film) => (sessionCountByFilm.get(film.id) ?? 0) > 0
+  );
+
   const slots = useMemo(
     () => (day ? slotTimes(day, sessions) : []),
     [day, sessions]
   );
-  const dragFilm = accepted.find((film) => film.id === dragFilmId) ?? null;
   const rollbackLeft = Math.max(0, Math.ceil((rollbackUntil - now) / 1000));
 
-  function conflict(hallId: string, startMs: number, durationSeconds: number, ignoreId?: string) {
-    const endMs = startMs + durationSeconds * 1000;
-    const dayEnd = slots.length
-      ? slots[slots.length - 1] + SLOT_MINUTES * 60 * 1000
-      : endMs;
-    if (endMs > dayEnd) return true;
+  function conflict(hallId: string, startMs: number, endMs: number, ignoreId?: string) {
     return sessions.some((session) => {
       if (session.hall_id !== hallId) return false;
       if (ignoreId && session.id === ignoreId) return false;
@@ -126,27 +149,47 @@ export function ModeratorSchedule() {
     });
   }
 
-  async function createSession(hallId: string, startMs: number, film: ApplicationRow) {
-    if (conflict(hallId, startMs, film.duration_seconds)) {
-      toast.error("Конфликт слота или длительности");
-      return;
+  async function createSession(film: ApplicationRow, hallId: string, startMs: number) {
+    const endMs = startMs + sessionSpanMs(film);
+    if (conflict(hallId, startMs, endMs)) {
+      return OVERLAP_ERROR;
     }
     const hall = halls.find((item) => item.id === hallId);
-    const starts = new Date(startMs).toISOString();
-    const ends = new Date(startMs + film.duration_seconds * 1000).toISOString();
     try {
       const { error } = await supabase.from("sessions").insert({
         film_id: film.id,
         hall_id: hallId,
-        starts_at: starts,
-        ends_at: ends,
+        starts_at: new Date(startMs).toISOString(),
+        ends_at: new Date(endMs).toISOString(),
         ticket_price: DEFAULT_TICKET_PRICE,
         capacity: hall?.capacity || 100,
-        is_published: false,
+        is_published: true,
       });
       if (error) {
         console.error(error.message);
         toast.error(error.message || "Ошибка");
+        return error.message || "Ошибка";
+      }
+      toast.success("Сохранено");
+      setPicked(null);
+      await load();
+      return null;
+    } catch (err) {
+      console.error(err);
+      toast.error("Ошибка");
+      return "Ошибка";
+    }
+  }
+
+  async function unpublishSession(id: string) {
+    try {
+      const { error } = await supabase
+        .from("sessions")
+        .update({ is_published: false })
+        .eq("id", id);
+      if (error) {
+        console.error(error.message);
+        toast.error("Ошибка");
         return;
       }
       toast.success("Сохранено");
@@ -155,17 +198,6 @@ export function ModeratorSchedule() {
       console.error(err);
       toast.error("Ошибка");
     }
-  }
-
-  async function removeSession(id: string) {
-    const { error } = await supabase.from("sessions").delete().eq("id", id);
-    if (error) {
-      console.error(error.message);
-      toast.error("Ошибка");
-      return;
-    }
-    toast.success("Сохранено");
-    await load();
   }
 
   async function publish() {
@@ -213,7 +245,7 @@ export function ModeratorSchedule() {
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
-            onClick={publish}
+            onClick={() => void publish()}
             className="h-10 rounded-[var(--ef-radius-button)] font-light"
           >
             Опубликовать расписание
@@ -222,46 +254,48 @@ export function ModeratorSchedule() {
             type="button"
             variant="outline"
             disabled={rollbackLeft <= 0}
-            onClick={rollback}
+            onClick={() => void rollback()}
             className="h-10 rounded-[var(--ef-radius-button)] border-[length:var(--ef-border-width)] bg-transparent font-light hover:bg-transparent"
           >
             Откатить публикацию{rollbackLeft > 0 ? ` (${rollbackLeft}с)` : ""}
           </Button>
         </div>
       </div>
-      <div className="mt-8 grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
+      <div className="mt-8 grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="border border-foreground/20 p-3">
           <h2 className="text-[length:var(--ef-text-meta)] font-extralight uppercase">
             Принятые без сеанса
           </h2>
           <ul className="mt-3 space-y-2">
-            {unscheduled.map((film) => (
-              <li
+            {withoutSessions.map((film) => (
+              <AcceptedFilmCard
                 key={film.id}
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.setData(FILM_DRAG, film.id);
-                  event.dataTransfer.effectAllowed = "copy";
-                  setDragFilmId(film.id);
-                }}
-                onDragEnd={() => {
-                  window.setTimeout(() => {
-                    setDragFilmId(null);
-                    setHover(null);
-                  }, 0);
-                }}
-                className="cursor-grab border border-foreground/20 bg-background px-2 py-2 active:cursor-grabbing"
-              >
-                <p className="text-[length:var(--ef-text-meta)] font-normal">{film.title}</p>
-                <p className="font-extralight text-muted-foreground">
-                  {formatDuration(film.duration_seconds)}
-                </p>
-              </li>
+                film={film}
+                sessionCount={0}
+                onPick={() => setPicked(film)}
+              />
             ))}
-            {unscheduled.length === 0 ? (
+            {withoutSessions.length === 0 ? (
               <li className="font-light text-muted-foreground">Все принятые уже в сетке.</li>
             ) : null}
           </ul>
+          {withSessions.length > 0 ? (
+            <>
+              <h3 className="mt-6 text-[length:var(--ef-text-meta)] font-extralight uppercase">
+                С сеансами
+              </h3>
+              <ul className="mt-3 space-y-2">
+                {withSessions.map((film) => (
+                  <AcceptedFilmCard
+                    key={film.id}
+                    film={film}
+                    sessionCount={sessionCountByFilm.get(film.id) ?? 0}
+                    onPick={() => setPicked(film)}
+                  />
+                ))}
+              </ul>
+            </>
+          ) : null}
         </aside>
         <div>
           <Tabs
@@ -317,17 +351,7 @@ export function ModeratorSchedule() {
                         session.hall_id === hall.id &&
                         dateKey(new Date(session.starts_at)) === day
                     )}
-                    dragFilm={dragFilm}
-                    hover={hover}
-                    conflictAt={(start) =>
-                      dragFilm ? conflict(hall.id, start, dragFilm.duration_seconds) : false
-                    }
-                    onHover={(start) => setHover(start === null ? null : { hallId: hall.id, start })}
-                    onDropSlot={(start) => {
-                      if (!dragFilm) return;
-                      void createSession(hall.id, start, dragFilm);
-                    }}
-                    onRemove={removeSession}
+                    onUnpublish={unpublishSession}
                   />
                 ))}
               </div>
@@ -335,7 +359,179 @@ export function ModeratorSchedule() {
           )}
         </div>
       </div>
+      <CreateSessionDialog
+        film={picked}
+        halls={halls}
+        defaultDay={day}
+        onOpenChange={(open) => {
+          if (!open) setPicked(null);
+        }}
+        onCreate={createSession}
+      />
     </div>
+  );
+}
+
+function AcceptedFilmCard({
+  film,
+  sessionCount,
+  onPick,
+}: {
+  film: ApplicationRow;
+  sessionCount: number;
+  onPick: () => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onPick}
+        className="flex w-full gap-2 border border-foreground/20 bg-background px-2 py-2 text-left hover:border-foreground/50"
+      >
+        {film.thumbnail_url ? (
+          <img
+            src={film.thumbnail_url}
+            alt=""
+            className="h-16 w-11 shrink-0 object-cover"
+          />
+        ) : (
+          <span className="flex h-16 w-11 shrink-0 items-center justify-center bg-muted text-[10px] font-extralight text-muted-foreground">
+            —
+          </span>
+        )}
+        <span className="min-w-0">
+          <span className="block truncate text-[length:var(--ef-text-meta)] font-normal">
+            {film.title}
+          </span>
+          <span className="block font-extralight text-muted-foreground">
+            {durationMin(film.duration_seconds)} мин
+            <span className="sr-only"> ({formatDuration(film.duration_seconds)})</span>
+          </span>
+          {sessionCount > 0 ? (
+            <span className="mt-1 inline-block border border-foreground/30 px-1 text-[10px] font-extralight uppercase">
+              {sessionCount} сеансов
+            </span>
+          ) : null}
+        </span>
+      </button>
+    </li>
+  );
+}
+
+function CreateSessionDialog({
+  film,
+  halls,
+  defaultDay,
+  onOpenChange,
+  onCreate,
+}: {
+  film: ApplicationRow | null;
+  halls: FestivalHall[];
+  defaultDay: string;
+  onOpenChange: (open: boolean) => void;
+  onCreate: (
+    film: ApplicationRow,
+    hallId: string,
+    startMs: number
+  ) => Promise<string | null>;
+}) {
+  const [hallId, setHallId] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("18:00");
+  const [overlap, setOverlap] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!film) return;
+    setHallId((current) => current || halls[0]?.id || "");
+    setDate(defaultDay || dateKey(new Date()));
+    setTime("18:00");
+    setOverlap(null);
+  }, [film, halls, defaultDay]);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!film || !hallId || !date || !time) return;
+    const startMs = new Date(`${date}T${time}`).getTime();
+    if (Number.isNaN(startMs)) {
+      setOverlap("Укажите дату и время начала.");
+      return;
+    }
+    setSaving(true);
+    setOverlap(null);
+    try {
+      const error = await onCreate(film, hallId, startMs);
+      if (error) setOverlap(error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={Boolean(film)} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Создать сеанс</DialogTitle>
+          <DialogDescription>
+            {film
+              ? `${film.title}, ${durationMin(film.duration_seconds)} мин + буфер ${BUFFER_MINUTES} мин`
+              : ""}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={(event) => void submit(event)} className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="session-hall">Зал</Label>
+            <select
+              id="session-hall"
+              value={hallId}
+              onChange={(event) => setHallId(event.target.value)}
+              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              required
+            >
+              {halls.map((hall) => (
+                <option key={hall.id} value={hall.id}>
+                  {hall.name} ({hall.capacity} мест)
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="session-date">Дата</Label>
+            <Input
+              id="session-date"
+              type="date"
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              required
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="session-time">Время начала</Label>
+            <Input
+              id="session-time"
+              type="time"
+              value={time}
+              onChange={(event) => setTime(event.target.value)}
+              required
+            />
+          </div>
+          {overlap ? <p className="text-sm text-red-500">{overlap}</p> : null}
+          <DialogFooter className="mt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="font-light"
+            >
+              Отмена
+            </Button>
+            <Button type="submit" disabled={saving || halls.length === 0} className="font-light">
+              Создать
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -343,22 +539,12 @@ function HallScheduleRow({
   hall,
   slots,
   sessions,
-  dragFilm,
-  hover,
-  conflictAt,
-  onHover,
-  onDropSlot,
-  onRemove,
+  onUnpublish,
 }: {
   hall: FestivalHall;
   slots: number[];
   sessions: FestivalSession[];
-  dragFilm: ApplicationRow | null;
-  hover: { hallId: string; start: number } | null;
-  conflictAt: (start: number) => boolean;
-  onHover: (start: number | null) => void;
-  onDropSlot: (start: number) => void;
-  onRemove: (id: string) => void;
+  onUnpublish: (id: string) => void;
 }) {
   const slotMs = SLOT_MINUTES * 60 * 1000;
   const start = slots[0] ?? 0;
@@ -376,28 +562,9 @@ function HallScheduleRow({
           className="absolute inset-0 grid"
           style={{ gridTemplateColumns: `repeat(${slots.length}, minmax(0, 1fr))` }}
         >
-          {slots.map((time) => {
-            const active = hover?.hallId === hall.id && hover.start === time;
-            const bad = active && dragFilm && conflictAt(time);
-            return (
-              <div
-                key={time}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  onHover(time);
-                }}
-                onDragLeave={() => onHover(null)}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  onHover(null);
-                  onDropSlot(time);
-                }}
-                className={`border-l border-foreground/10 ${
-                  bad ? "bg-red-500/40" : active ? "bg-emerald-500/20" : ""
-                }`}
-              />
-            );
-          })}
+          {slots.map((time) => (
+            <div key={time} className="border-l border-foreground/10" />
+          ))}
         </div>
         {sessions.map((session) => {
           const from = new Date(session.starts_at).getTime();
@@ -418,13 +585,17 @@ function HallScheduleRow({
             >
               <p className="text-[10px] font-medium tabular-nums">{formatClock(session.starts_at)}</p>
               <p className="truncate text-[length:var(--ef-text-meta)]">{session.film.title}</p>
-              <button
-                type="button"
-                className="text-[10px] font-extralight underline"
-                onClick={() => onRemove(session.id)}
-              >
-                Убрать
-              </button>
+              {session.is_published ? (
+                <button
+                  type="button"
+                  className="text-[10px] font-extralight underline"
+                  onClick={() => onUnpublish(session.id)}
+                >
+                  Снять с публикации
+                </button>
+              ) : (
+                <p className="text-[10px] font-extralight text-muted-foreground">Снят</p>
+              )}
             </div>
           );
         })}
