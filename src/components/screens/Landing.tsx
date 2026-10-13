@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { FILM_SELECT, FilmCard, toCatalogFilm, type CatalogFilm } from "@/components/film-card";
+import { FILM_SELECT, toCatalogFilm, type CatalogFilm } from "@/components/film-card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabase";
@@ -35,6 +35,54 @@ const FALLBACK: FestivalInfo = {
     "Фестиваль короткометражного кино: три дня программы, залы и билеты на сеанс.",
   hero_image: "/brand/hero.png",
 };
+
+const FALLBACK_PREVIEWS: CatalogFilm[] = [
+  {
+    id: "preview-1",
+    slug: "preview-1",
+    title: "Иван и бабочка",
+    author: "Иван Петров",
+    authorId: "",
+    ownerId: "",
+    year: 2026,
+    durationSeconds: 1200,
+    moods: [],
+    themes: ["Россия"],
+    genre: ["драма"],
+    synopsis: "",
+    thumbnailUrl: "/brand/film-butterfly.png",
+  },
+  {
+    id: "preview-2",
+    slug: "preview-2",
+    title: "Летний ветер",
+    author: "Анна Волкова",
+    authorId: "",
+    ownerId: "",
+    year: 2025,
+    durationSeconds: 900,
+    moods: [],
+    themes: ["Россия"],
+    genre: ["документальный"],
+    synopsis: "",
+    thumbnailUrl: "/brand/film-still-main.png",
+  },
+  {
+    id: "preview-3",
+    slug: "preview-3",
+    title: "Ночной трамвай",
+    author: "Кирилл Орлов",
+    authorId: "",
+    ownerId: "",
+    year: 2026,
+    durationSeconds: 1080,
+    moods: [],
+    themes: ["Россия"],
+    genre: ["драма"],
+    synopsis: "",
+    thumbnailUrl: "/brand/film-still-1.png",
+  },
+];
 
 function firstSentence(text: string | null | undefined) {
   const raw = (text ?? FALLBACK.description ?? "").trim();
@@ -89,24 +137,32 @@ export function Landing() {
     let cancelled = false;
 
     async function load() {
-      const [{ data: festival }, { data: filmRows }, { data: sessionRows }] =
-        await Promise.all([
-          supabase.from("festival_info").select("*").eq("id", 1).maybeSingle(),
-          supabase
-            .from("films")
-            .select(FILM_SELECT)
-            .in("status", ["accepted", "published"])
-            .order("created_at", { ascending: false })
-            .limit(6),
-          supabase
-            .from("sessions")
-            .select("id, starts_at, film_id, films(title), halls(name)")
-            .eq("is_published", true)
-            .order("starts_at")
-            .limit(40),
-        ]);
+      const festivalQuery = supabase
+        .from("festival_info")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+      const filmsQuery = supabase
+        .from("films")
+        .select(FILM_SELECT)
+        .in("status", ["accepted", "published"])
+        .order("created_at", { ascending: false })
+        .limit(6);
+      let sessionsQuery = supabase
+        .from("sessions")
+        .select("id, starts_at, film_id, films(title), halls(name)")
+        .eq("is_published", true)
+        .order("starts_at")
+        .limit(40);
+
+      const [festivalRes, filmsRes, sessionsRes] = await Promise.all([
+        festivalQuery,
+        filmsQuery,
+        sessionsQuery,
+      ]);
 
       if (cancelled) return;
+      const festival = festivalRes.data;
       if (festival) {
         setInfo({
           name: festival.name ?? FALLBACK.name,
@@ -118,8 +174,18 @@ export function Landing() {
           hero_image: festival.hero_image ?? FALLBACK.hero_image,
         });
       }
-      setFilms((filmRows ?? []).map(toCatalogFilm));
-      setSessions((sessionRows ?? []) as SessionRow[]);
+      setFilms((filmsRes.data ?? []).map(toCatalogFilm));
+
+      if (sessionsRes.error?.code === "PGRST204") {
+        const retry = await supabase
+          .from("sessions")
+          .select("id, starts_at, film_id, films(title), halls(name)")
+          .order("starts_at")
+          .limit(40);
+        if (!cancelled) setSessions((retry.data ?? []) as SessionRow[]);
+        return;
+      }
+      setSessions((sessionsRes.data ?? []) as SessionRow[]);
     }
 
     load().catch((error) => console.error(error));
@@ -203,7 +269,7 @@ export function Landing() {
                 render={<Link href="/program" />}
                 className="h-12 rounded-[var(--ef-radius-button)] border-[length:var(--ef-border-width)] bg-transparent px-6 font-light hover:bg-transparent sm:h-14"
               >
-                Купить билет
+                Выбрать сеанс
               </Button>
             </div>
           </div>
@@ -233,15 +299,31 @@ export function Landing() {
           </Button>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {films.slice(0, 6).map((film) => (
-            <FilmCard key={film.id} film={film} variant="poster" />
+          {(films.length > 0 ? films : FALLBACK_PREVIEWS).slice(0, 3).map((film) => (
+            <Link
+              key={film.id}
+              href={film.id.startsWith("preview-") ? "/program" : `/film/${film.id}`}
+              className="group block"
+            >
+              <div className="relative aspect-[3/4] overflow-hidden bg-hero">
+                {film.thumbnailUrl ? (
+                  <img
+                    src={film.thumbnailUrl}
+                    alt=""
+                    className="size-full object-cover object-bottom"
+                  />
+                ) : null}
+              </div>
+              <h3 className="mt-3 text-[length:var(--ef-text-body)] font-normal">
+                {film.title}
+              </h3>
+              <p className="mt-1 font-extralight text-[length:var(--ef-text-meta)] text-muted-foreground">
+                {film.author}
+                {film.year ? ` · ${film.year}` : ""}
+              </p>
+            </Link>
           ))}
         </div>
-        {films.length === 0 ? (
-          <p className="mt-6 text-[length:var(--ef-text-body)] font-light text-muted-foreground">
-            Программа появится здесь, как только модератор примет фильмы.
-          </p>
-        ) : null}
       </section>
 
       <section className="bg-section px-4 py-12 sm:px-6 sm:py-16">

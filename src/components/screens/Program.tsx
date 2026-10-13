@@ -58,11 +58,7 @@ export function Program() {
         ] = await Promise.all([
           supabase.from("festival_info").select("*").eq("id", 1).maybeSingle(),
           supabase.from("halls").select("id, name, address, capacity").order("name"),
-          supabase
-            .from("sessions")
-            .select(SESSION_SELECT)
-            .eq("is_published", true)
-            .order("starts_at"),
+          supabase.from("sessions").select(SESSION_SELECT).order("starts_at"),
         ]);
 
         if (cancelled) return;
@@ -79,7 +75,7 @@ export function Program() {
         setSessions(
           (sessionRows ?? [])
             .map((row) => mapFestivalSession(row as Parameters<typeof mapFestivalSession>[0]))
-            .filter((row): row is FestivalSession => Boolean(row))
+            .filter((row): row is FestivalSession => Boolean(row) && row.is_published !== false)
         );
       } catch (err) {
         if (cancelled) return;

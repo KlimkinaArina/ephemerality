@@ -171,7 +171,7 @@ export function mapFestivalSession(row: {
     capacity: row.capacity,
     film_id: row.film_id,
     hall_id: row.hall_id,
-    is_published: Boolean(row.is_published),
+    is_published: row.is_published !== false,
     film: mapFestivalFilm(film),
     hall,
   };
