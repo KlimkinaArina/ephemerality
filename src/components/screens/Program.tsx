@@ -75,7 +75,7 @@ export function Program() {
         setSessions(
           (sessionRows ?? [])
             .map((row) => mapFestivalSession(row as Parameters<typeof mapFestivalSession>[0]))
-            .filter((row): row is FestivalSession => Boolean(row) && row.is_published !== false)
+            .filter((row): row is FestivalSession => row != null && row.is_published !== false)
         );
       } catch (err) {
         if (cancelled) return;
