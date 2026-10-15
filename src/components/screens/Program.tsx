@@ -312,7 +312,7 @@ function HallRow({
             <Link
               key={session.id}
               href={`/session/${session.id}`}
-              className="absolute top-1 bottom-1 overflow-hidden border border-foreground/40 bg-background px-2 py-1 hover:bg-muted"
+              className="absolute top-1 bottom-1 flex flex-col overflow-hidden border border-foreground/40 bg-background px-2 py-1 hover:bg-muted"
               style={{ left: `${left}%`, width: `${width}%` }}
             >
               <p className="text-[length:var(--ef-text-meta)] font-medium tabular-nums">
@@ -324,6 +324,9 @@ function HallRow({
               <p className="text-[length:var(--ef-text-meta)] font-extralight text-muted-foreground">
                 {formatPrice(session.ticket_price)}
               </p>
+              <span className="mt-auto pt-1 text-[10px] font-extralight underline underline-offset-2">
+                Купить билет на этот сеанс
+              </span>
             </Link>
           );
         })}

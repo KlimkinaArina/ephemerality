@@ -266,10 +266,10 @@ export function Landing() {
               <Button
                 nativeButton={false}
                 variant="outline"
-                render={<Link href="/program" />}
+                render={<Link href="/buy" />}
                 className="h-12 rounded-[var(--ef-radius-button)] border-[length:var(--ef-border-width)] bg-transparent px-6 font-light hover:bg-transparent sm:h-14"
               >
-                Выбрать сеанс
+                Купить билет
               </Button>
             </div>
           </div>

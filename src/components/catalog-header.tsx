@@ -20,25 +20,29 @@ import { supabase } from "@/lib/supabase";
 
 function navForRole(role: UserRole | null, signedIn: boolean) {
   const program = { href: "/program", label: "Программа" };
+  const buy = { href: "/buy", label: "Купить билет" };
   if (!signedIn) {
     return [
       program,
+      buy,
       { href: "/venues", label: "Залы" },
       { href: "/director", label: "Режиссёрам" },
     ];
   }
   if (role === "moderator") {
-    return [program, { href: "/moderator", label: "Модерация" }];
+    return [program, buy, { href: "/moderator", label: "Модерация" }];
   }
   if (role === "director") {
     return [
       program,
+      buy,
       { href: "/director/apply", label: "Подать заявку" },
       { href: "/director/my", label: "Мои заявки" },
     ];
   }
   return [
     program,
+    buy,
     { href: "/venues", label: "Залы" },
     { href: "/tickets", label: "Мои билеты" },
   ];
