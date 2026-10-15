@@ -19,6 +19,7 @@ type Metrics = {
 const LINKS = [
   { href: "/moderator/queue", label: "Очередь" },
   { href: "/moderator/schedule", label: "Расписание" },
+  { href: "/moderator/halls", label: "Залы" },
   { href: "/moderator/analytics", label: "Аналитика" },
 ];
 

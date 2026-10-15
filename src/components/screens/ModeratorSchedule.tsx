@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { formatDuration } from "@/components/film-card";
@@ -317,9 +318,11 @@ export function ModeratorSchedule() {
               ))}
             </TabsList>
           </Tabs>
-          {halls.length === 0 || slots.length === 0 ? (
+          {halls.length === 0 ? (
+            <EmptyHallsNotice className="mt-6" />
+          ) : slots.length === 0 ? (
             <p className="mt-6 font-light text-muted-foreground">
-              Добавьте залы и даты фестиваля, чтобы собрать сетку.
+              Добавьте даты фестиваля, чтобы собрать сетку.
             </p>
           ) : (
             <div className="mt-6 overflow-x-auto">
@@ -368,6 +371,25 @@ export function ModeratorSchedule() {
         }}
         onCreate={createSession}
       />
+    </div>
+  );
+}
+
+function EmptyHallsNotice({ className = "" }: { className?: string }) {
+  return (
+    <div className={className}>
+      <p className="font-light text-muted-foreground">
+        Сначала добавьте хотя бы один зал →{" "}
+        <Link href="/moderator/halls" className="underline underline-offset-4">
+          /moderator/halls
+        </Link>
+      </p>
+      <Link
+        href="/moderator/halls"
+        className="mt-3 inline-flex h-10 items-center rounded-[var(--ef-radius-button)] border border-foreground/30 px-4 text-[length:var(--ef-text-meta)] font-light"
+      >
+        Добавить зал
+      </Link>
     </div>
   );
 }
@@ -479,6 +501,7 @@ function CreateSessionDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void submit(event)} className="grid gap-3">
+          {halls.length === 0 ? <EmptyHallsNotice /> : null}
           <div className="grid gap-1.5">
             <Label htmlFor="session-hall">Зал</Label>
             <select
@@ -487,6 +510,7 @@ function CreateSessionDialog({
               onChange={(event) => setHallId(event.target.value)}
               className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
               required
+              disabled={halls.length === 0}
             >
               {halls.map((hall) => (
                 <option key={hall.id} value={hall.id}>
