@@ -14,6 +14,7 @@ import {
   type CatalogFilm,
 } from "@/components/film-card";
 import { FilmFormSheet } from "@/components/film-form-sheet";
+import { PosterImage } from "@/components/poster-image";
 import { ErrorState } from "@/components/film-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -310,26 +311,23 @@ export function Film({ id }: { id: string }) {
                 role="region"
                 aria-label="Плеер фильма"
               >
-                {film.heroUrl ? (
-                  <img
-                    src={film.heroUrl}
-                    alt=""
-                    className="size-full object-cover object-bottom opacity-40"
-                  />
-                ) : null}
+                <PosterImage
+                  src={film.heroUrl}
+                  title={film.title}
+                  className="absolute inset-0"
+                  imgClassName="size-full object-cover object-bottom opacity-40"
+                />
                 <p className="absolute text-[length:var(--ef-text-body)] font-light">
                   Идёт показ
                 </p>
               </div>
             ) : (
               <>
-                {film.heroUrl ? (
-                  <img
-                    src={film.heroUrl}
-                    alt=""
-                    className="absolute inset-0 size-full object-cover object-bottom"
-                  />
-                ) : null}
+                <PosterImage
+                  src={film.heroUrl}
+                  title={film.title}
+                  className="absolute inset-0"
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-film from-[20%] to-transparent" />
                 <div className="absolute inset-y-0 right-0 w-[28%] bg-gradient-to-l from-film to-transparent" />
               </>
@@ -347,13 +345,12 @@ export function Film({ id }: { id: string }) {
             role="region"
             aria-label="Плеер фильма"
           >
-            {film.heroUrl ? (
-              <img
-                src={film.heroUrl}
-                alt=""
-                className="size-full object-cover object-bottom opacity-40"
-              />
-            ) : null}
+            <PosterImage
+              src={film.heroUrl}
+              title={film.title}
+              className="absolute inset-0"
+              imgClassName="size-full object-cover object-bottom opacity-40"
+            />
             <p className="absolute inset-0 flex items-center justify-center text-[length:var(--ef-text-body)] font-light">
               Идёт показ
             </p>
@@ -414,27 +411,23 @@ export function Film({ id }: { id: string }) {
           )}
         </div>
 
-        {stills.length > 0 ? (
-          <div className="mt-16 grid gap-2 lg:grid-cols-[minmax(0,1fr)_267px]">
-            <div className="relative aspect-[936/466] overflow-hidden bg-film-panel">
-              <img
-                src={stills[0]}
-                alt=""
-                className="size-full object-cover object-bottom"
+        <div className="mt-16 grid gap-2 lg:grid-cols-[minmax(0,1fr)_267px]">
+          <PosterImage
+            src={stills[0] ?? film.heroUrl}
+            title={film.title}
+            className="aspect-[936/466] bg-film-panel"
+          />
+          <div className="grid gap-2">
+            {(stills.slice(1).length > 0 ? stills.slice(1) : [null]).map((src, index) => (
+              <PosterImage
+                key={src ?? `placeholder-${index}`}
+                src={src}
+                title={film.title}
+                className="aspect-[267/148] bg-film-panel"
               />
-            </div>
-            <div className="grid gap-2">
-              {stills.slice(1).map((src) => (
-                <div
-                  key={src}
-                  className="relative aspect-[267/148] overflow-hidden bg-film-panel"
-                >
-                  <img src={src} alt="" className="size-full object-cover" />
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
-        ) : null}
+        </div>
 
         <div className="mt-16">
           <DayRule />

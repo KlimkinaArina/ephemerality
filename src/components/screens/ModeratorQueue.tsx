@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatDuration } from "@/components/film-card";
+import { PosterImage } from "@/components/poster-image";
 import { ErrorState } from "@/components/film-grid";
 import { ModeratorNav } from "@/components/moderator-nav";
 import { Badge } from "@/components/ui/badge";
@@ -234,11 +235,11 @@ export function ModeratorQueue() {
                     />
                   </td>
                   <td className="py-2 pr-3">
-                    {row.thumbnail_url ? (
-                      <img src={row.thumbnail_url} alt="" className="h-14 w-10 object-cover" />
-                    ) : (
-                      <div className="h-14 w-10 bg-muted" />
-                    )}
+                    <PosterImage
+                      src={row.thumbnail_url}
+                      title={row.title}
+                      className="h-14 w-10 shrink-0"
+                    />
                   </td>
                   <td className="py-2 pr-3 font-normal">{row.title}</td>
                   <td className="py-2 pr-3 font-light">{directorOf(row)}</td>

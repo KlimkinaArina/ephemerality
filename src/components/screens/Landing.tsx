@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { FILM_SELECT, toCatalogFilm, type CatalogFilm } from "@/components/film-card";
+import { PosterImage } from "@/components/poster-image";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabase";
@@ -305,15 +306,11 @@ export function Landing() {
               href={film.id.startsWith("preview-") ? "/program" : `/film/${film.id}`}
               className="group block"
             >
-              <div className="relative aspect-[3/4] overflow-hidden bg-hero">
-                {film.thumbnailUrl ? (
-                  <img
-                    src={film.thumbnailUrl}
-                    alt=""
-                    className="size-full object-cover object-bottom"
-                  />
-                ) : null}
-              </div>
+              <PosterImage
+                src={film.thumbnailUrl}
+                title={film.title}
+                className="aspect-[3/4]"
+              />
               <h3 className="mt-3 text-[length:var(--ef-text-body)] font-normal">
                 {film.title}
               </h3>

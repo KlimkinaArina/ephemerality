@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { formatDuration } from "@/components/film-card";
+import { PosterImage } from "@/components/poster-image";
 import { ErrorState } from "@/components/film-grid";
 import { ModeratorNav } from "@/components/moderator-nav";
 import { Badge } from "@/components/ui/badge";
@@ -154,9 +155,12 @@ export function ModeratorFilm({ id }: { id: string }) {
               {STATUS_LABEL[status]}
             </Badge>
           </div>
-          {row.thumbnail_url ? (
-            <img src={row.thumbnail_url} alt="" className="mt-6 max-h-72 object-contain" />
-          ) : null}
+          <PosterImage
+            src={row.thumbnail_url}
+            title={row.title}
+            className="mt-6 max-h-72 min-h-40 w-full max-w-sm"
+            imgClassName="max-h-72 w-full object-contain"
+          />
           {embed ? (
             <iframe
               title="Видео заявки"

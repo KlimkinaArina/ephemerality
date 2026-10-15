@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { formatDuration } from "@/components/film-card";
+import { PosterImage } from "@/components/poster-image";
 import { ModeratorNav } from "@/components/moderator-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -410,17 +411,11 @@ function AcceptedFilmCard({
         onClick={onPick}
         className="flex w-full gap-2 border border-foreground/20 bg-background px-2 py-2 text-left hover:border-foreground/50"
       >
-        {film.thumbnail_url ? (
-          <img
-            src={film.thumbnail_url}
-            alt=""
-            className="h-16 w-11 shrink-0 object-cover"
-          />
-        ) : (
-          <span className="flex h-16 w-11 shrink-0 items-center justify-center bg-muted text-[10px] font-extralight text-muted-foreground">
-            —
-          </span>
-        )}
+        <PosterImage
+          src={film.thumbnail_url}
+          title={film.title}
+          className="h-16 w-11 shrink-0"
+        />
         <span className="min-w-0">
           <span className="block truncate text-[length:var(--ef-text-meta)] font-normal">
             {film.title}

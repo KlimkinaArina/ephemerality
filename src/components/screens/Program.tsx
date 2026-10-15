@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/film-grid";
+import { PosterImage } from "@/components/poster-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -318,6 +319,11 @@ function HallRow({
               <p className="text-[length:var(--ef-text-meta)] font-medium tabular-nums">
                 {formatClock(session.starts_at)}
               </p>
+              <PosterImage
+                src={session.film.thumbnail_url}
+                title={session.film.title}
+                className="mb-1 h-10 w-full"
+              />
               <p className="truncate text-[length:var(--ef-text-meta)] font-light">
                 {session.film.title}
               </p>

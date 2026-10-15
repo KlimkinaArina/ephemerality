@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatDuration } from "@/components/film-card";
+import { PosterImage } from "@/components/poster-image";
 import { ErrorState } from "@/components/film-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -234,15 +235,11 @@ export function Buy() {
                       className="w-full text-left"
                       onClick={() => setFilmId(item.film.id)}
                     >
-                      <div className="relative aspect-[3/4] overflow-hidden bg-hero">
-                        {item.film.thumbnail_url ? (
-                          <img
-                            src={item.film.thumbnail_url}
-                            alt=""
-                            className="size-full object-cover object-bottom"
-                          />
-                        ) : null}
-                      </div>
+                      <PosterImage
+                        src={item.film.thumbnail_url}
+                        title={item.film.title}
+                        className="aspect-[3/4]"
+                      />
                       <h2 className="mt-3 text-[length:var(--ef-text-body)] font-normal">
                         {item.film.title}
                       </h2>

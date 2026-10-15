@@ -21,6 +21,7 @@ import { ensureAuthor } from "@/lib/ensure-author";
 import { slugify } from "@/lib/slug";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
+import { PosterImage } from "@/components/poster-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -327,9 +328,13 @@ export function DirectorApplicationForm({
             if (file) void uploadPoster(file);
           }}
         />
-        {posterUrl ? (
-          <img src={posterUrl} alt="Постер" className="mt-2 max-h-48 object-contain" />
-        ) : null}
+        <PosterImage
+          src={posterUrl}
+          title={watch("title") || "Постер"}
+          alt="Постер"
+          className="mt-2 max-h-48 min-h-32 w-full max-w-xs"
+          imgClassName="max-h-48 w-full object-contain"
+        />
       </div>
 
       {readOnly ? (

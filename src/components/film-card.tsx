@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Play } from "lucide-react";
+import { PosterImage } from "@/components/poster-image";
 import { Badge } from "@/components/ui/badge";
 
 export type CatalogFilm = {
@@ -106,15 +107,11 @@ export function FilmCard({
         href={`/film/${film.id}`}
         className="grid gap-4 py-4 sm:grid-cols-[250px_minmax(0,1fr)_minmax(0,211px)_auto] sm:items-start sm:gap-6"
       >
-        <div className="relative h-[140px] w-full overflow-hidden bg-hero sm:w-[250px]">
-          {film.thumbnailUrl ? (
-            <img
-              src={film.thumbnailUrl}
-              alt=""
-              className="size-full object-cover object-bottom"
-            />
-          ) : null}
-        </div>
+        <PosterImage
+          src={film.thumbnailUrl}
+          title={film.title}
+          className="h-[140px] w-full sm:w-[250px]"
+        />
         <div className="min-w-0">
           <h3 className="text-[length:var(--ef-text-body)] font-normal text-foreground">
             {film.title}
@@ -146,15 +143,11 @@ export function FilmCard({
   if (variant === "landscape") {
     return (
       <Link href={`/film/${film.id}`} className="group block">
-        <div className="relative aspect-[385/216] overflow-hidden bg-hero">
-          {film.thumbnailUrl ? (
-            <img
-              src={film.thumbnailUrl}
-              alt=""
-              className="size-full object-cover object-bottom"
-            />
-          ) : null}
-        </div>
+        <PosterImage
+          src={film.thumbnailUrl}
+          title={film.title}
+          className="aspect-[385/216]"
+        />
         <div className="mt-3 flex items-start justify-between gap-3">
           <div>
             <h3 className="text-[length:var(--ef-text-body)] font-normal text-foreground">
@@ -178,13 +171,12 @@ export function FilmCard({
       className="group block overflow-hidden rounded-md border border-border bg-card transition-colors hover:border-primary/50"
     >
       <div className="relative aspect-[3/4] bg-gradient-to-br from-muted via-muted/60 to-muted/20">
-        {film.thumbnailUrl ? (
-          <img
-            src={film.thumbnailUrl}
-            alt=""
-            className="absolute inset-0 size-full object-cover"
-          />
-        ) : null}
+        <PosterImage
+          src={film.thumbnailUrl}
+          title={film.title}
+          className="absolute inset-0"
+          imgClassName="absolute inset-0 size-full object-cover"
+        />
         <Badge variant="secondary" className="absolute left-3 top-3 z-10">
           {formatDuration(film.durationSeconds)}
         </Badge>
